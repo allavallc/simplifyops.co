@@ -79,3 +79,13 @@ The form_id/configuration lives in the external service, not in this repo.
 - Hosting: GitHub Pages
 - Contact: Formspree or equivalent
 - Content generation: Hermes Agent + Ollama (runs separately, not in this repo)
+- Orchestration: Paperclip (optional, for multi-agent workflows)
+
+## Local Development Setup
+
+See `plan-architecture/starting-up.md` for step-by-step startup instructions.
+
+**Quick start:**
+1. Ollama: auto-starts (check system tray)
+2. Hermes: `hermes chat --model hermes3:3b`
+3. Paperclip: `npx paperclipai run` (requires admin PowerShell)
