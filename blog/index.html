@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insights | SimplifyOps</title>
+    <meta name="description" content="Articles on operations, hiring, process design, and building systems that scale.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --black: #1a1a1a;
+            --white: #fafafa;
+            --gray-100: #f5f5f4;
+            --gray-200: #e7e5e4;
+            --gray-400: #a8a29e;
+            --gray-600: #57534e;
+            --accent: #c4724a;
+
+            --space-xs: 0.5rem;
+            --space-sm: 1rem;
+            --space-md: 2rem;
+            --space-lg: 4rem;
+            --space-xl: 8rem;
+
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            font-family: var(--font);
+            color: var(--black);
+            background: var(--white);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection {
+            background: var(--accent);
+            color: var(--white);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 var(--space-md);
+        }
+
+        /* Header */
+        header {
+            padding: var(--space-sm) 0;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.125rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: var(--black);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        nav a {
+            color: var(--gray-600);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.2s ease;
+        }
+
+        nav a:hover {
+            color: var(--black);
+        }
+
+        /* Main */
+        main {
+            padding: var(--space-xl) 0;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 600;
+            letter-spacing: -0.03em;
+            margin-bottom: var(--space-xs);
+        }
+
+        .page-subtitle {
+            color: var(--gray-600);
+            font-size: 1.125rem;
+            margin-bottom: var(--space-lg);
+        }
+
+        /* Posts List */
+        .posts-list {
+            list-style: none;
+        }
+
+        .post-item {
+            padding: var(--space-md) 0;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .post-item:first-child {
+            padding-top: 0;
+        }
+
+        .post-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            transition: all 0.2s ease;
+        }
+
+        .post-link:hover h2 {
+            color: var(--accent);
+        }
+
+        .post-link h2 {
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: var(--space-xs);
+            transition: color 0.2s ease;
+        }
+
+        .post-meta {
+            display: flex;
+            gap: var(--space-sm);
+            color: var(--gray-400);
+            font-size: 0.875rem;
+        }
+
+        .post-excerpt {
+            color: var(--gray-600);
+            margin-top: var(--space-xs);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: var(--space-xl) 0;
+            color: var(--gray-400);
+        }
+
+        .empty-state p {
+            font-size: 1.125rem;
+        }
+
+        /* Footer */
+        footer {
+            padding: var(--space-lg) 0;
+            border-top: 1px solid var(--gray-200);
+            margin-top: var(--space-xl);
+        }
+
+        footer p {
+            color: var(--gray-400);
+            font-size: 0.875rem;
+            text-align: center;
+        }
+
+        footer a {
+            color: var(--gray-600);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: var(--accent);
+        }
+
+        @media (max-width: 600px) {
+            .page-title {
+                font-size: 2rem;
+            }
+
+            main {
+                padding: var(--space-lg) 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-inner">
+                <a href="/" class="logo">Simplify<span>Ops</span></a>
+                <nav>
+                    <a href="/">Back to home</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <h1 class="page-title">Insights</h1>
+            <p class="page-subtitle">Thoughts on operations, hiring, and building systems that work.</p>
+
+            <div class="empty-state">
+                <p>New articles coming soon.</p>
+            </div>
+
+            <!-- Posts will be added here as they're published -->
+            <!--
+            <ul class="posts-list">
+                <li class="post-item">
+                    <a href="/blog/posts/example-post.html" class="post-link">
+                        <h2>Post Title Goes Here</h2>
+                        <div class="post-meta">
+                            <span>March 2026</span>
+                            <span>5 min read</span>
+                        </div>
+                        <p class="post-excerpt">A brief excerpt from the post that gives readers an idea of what the article is about...</p>
+                    </a>
+                </li>
+            </ul>
+            -->
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 SimplifyOps &bull; <a href="/#contact">Get in touch</a></p>
+        </div>
+    </footer>
+</body>
+</html>
