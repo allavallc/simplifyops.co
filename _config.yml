@@ -1,0 +1,15 @@
+title: SimplifyOps
+description: Operations consulting for growing companies
+url: https://simplifyops.co
+
+# Blog settings
+permalink: /blog/:year/:month/:day/:title/
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+
+# Build settings
+markdown: kramdown

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page.title }} | SimplifyOps</title>
+    <meta name="description" content="{{ page.description | default: page.excerpt | strip_html | truncate: 160 }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --black: #1a1a1a;
+            --white: #fafafa;
+            --gray-100: #f5f5f4;
+            --gray-200: #e7e5e4;
+            --gray-400: #a8a29e;
+            --gray-600: #57534e;
+            --accent: #c4724a;
+
+            --space-xs: 0.5rem;
+            --space-sm: 1rem;
+            --space-md: 2rem;
+            --space-lg: 4rem;
+            --space-xl: 8rem;
+
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            font-family: var(--font);
+            color: var(--black);
+            background: var(--white);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection {
+            background: var(--accent);
+            color: var(--white);
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 0 var(--space-md);
+        }
+
+        /* Header */
+        header {
+            padding: var(--space-sm) 0;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .header-inner {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 0 var(--space-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.125rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: var(--black);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        nav a {
+            color: var(--gray-600);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.2s ease;
+        }
+
+        nav a:hover {
+            color: var(--black);
+        }
+
+        /* Article */
+        article {
+            padding: var(--space-xl) 0;
+        }
+
+        .post-header {
+            margin-bottom: var(--space-lg);
+        }
+
+        .post-meta {
+            color: var(--gray-400);
+            font-size: 0.875rem;
+            margin-bottom: var(--space-sm);
+        }
+
+        .post-title {
+            font-size: 2.5rem;
+            font-weight: 600;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+        }
+
+        /* Post content */
+        .post-content {
+            font-size: 1.0625rem;
+            line-height: 1.8;
+        }
+
+        .post-content h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-top: var(--space-lg);
+            margin-bottom: var(--space-sm);
+        }
+
+        .post-content h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: var(--space-md);
+            margin-bottom: var(--space-xs);
+        }
+
+        .post-content p {
+            margin-bottom: var(--space-md);
+            color: var(--gray-600);
+        }
+
+        .post-content ul,
+        .post-content ol {
+            margin-bottom: var(--space-md);
+            padding-left: var(--space-md);
+            color: var(--gray-600);
+        }
+
+        .post-content li {
+            margin-bottom: var(--space-xs);
+        }
+
+        .post-content strong {
+            color: var(--black);
+            font-weight: 600;
+        }
+
+        .post-content a {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+
+        .post-content blockquote {
+            border-left: 2px solid var(--accent);
+            padding-left: var(--space-md);
+            margin: var(--space-md) 0;
+            font-style: italic;
+            color: var(--gray-600);
+        }
+
+        .post-content hr {
+            border: none;
+            border-top: 1px solid var(--gray-200);
+            margin: var(--space-lg) 0;
+        }
+
+        /* Footer */
+        footer {
+            padding: var(--space-lg) 0;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .footer-inner {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 0 var(--space-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        footer p {
+            color: var(--gray-400);
+            font-size: 0.875rem;
+        }
+
+        footer a {
+            color: var(--gray-600);
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+
+        footer a:hover {
+            color: var(--accent);
+        }
+
+        @media (max-width: 600px) {
+            .post-title {
+                font-size: 2rem;
+            }
+
+            article {
+                padding: var(--space-lg) 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-inner">
+            <a href="/" class="logo">Simplify<span>Ops</span></a>
+            <nav>
+                <a href="/blog/">All posts</a>
+            </nav>
+        </div>
+    </header>
+
+    <article>
+        <div class="container">
+            <header class="post-header">
+                <p class="post-meta">{{ page.date | date: "%B %d, %Y" }}</p>
+                <h1 class="post-title">{{ page.title }}</h1>
+            </header>
+
+            <div class="post-content">
+                {{ content }}
+            </div>
+        </div>
+    </article>
+
+    <footer>
+        <div class="footer-inner">
+            <p>&copy; 2026 SimplifyOps</p>
+            <a href="/#contact">Get in touch</a>
+        </div>
+    </footer>
+</body>
+</html>

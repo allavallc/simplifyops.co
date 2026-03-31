@@ -1,0 +1,36 @@
+# Sensitive files - NEVER commit
+billing/
+plan-architecture/
+scripts/
+config.yaml
+
+# Service account keys
+*.json
+!package.json
+!tsconfig.json
+
+# Environment files
+.env
+.env.*
+*.env
+
+# Logs with potential PII
+logs/
+
+# Local development
+.hermes.md
+CLAUDE.md
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Jekyll build
+_site/
+.sass-cache/
+.jekyll-cache/
+.jekyll-metadata
