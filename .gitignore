@@ -2,6 +2,7 @@
 billing/
 plan-architecture/
 scripts/
+souls/
 config.yaml
 
 # Service account keys
