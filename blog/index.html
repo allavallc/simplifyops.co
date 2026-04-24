@@ -10,55 +10,67 @@ layout: null
     <meta name="description" content="Articles on operations, hiring, process design, and building systems that scale.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --black: #1a1a1a;
-            --white: #fafafa;
-            --gray-100: #f5f5f4;
-            --gray-200: #e7e5e4;
-            --gray-400: #a8a29e;
-            --gray-600: #57534e;
+            --bg: #0a0a0a;
+            --bg-2: #111111;
+            --ink: #f2f1ee;
+            --ink-dim: #8a8680;
+            --ink-dimmer: #55514c;
+            --line: #1f1d1b;
             --accent: #c4724a;
 
-            --space-xs: 0.5rem;
-            --space-sm: 1rem;
-            --space-md: 2rem;
-            --space-lg: 4rem;
-            --space-xl: 8rem;
-
-            --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --display: 'Big Shoulders Display', 'Inter', sans-serif;
+            --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --mono: 'JetBrains Mono', ui-monospace, monospace;
         }
+
+        html { scroll-behavior: smooth; }
 
         body {
-            font-family: var(--font);
-            color: var(--black);
-            background: var(--white);
+            font-family: var(--sans);
+            color: var(--ink);
+            background: var(--bg);
             line-height: 1.6;
+            font-size: 16px;
             -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
         }
 
-        ::selection {
-            background: var(--accent);
-            color: var(--white);
-        }
+        ::selection { background: var(--accent); color: var(--bg); }
 
         .container {
-            max-width: 800px;
+            max-width: 960px;
             margin: 0 auto;
-            padding: 0 var(--space-md);
+            padding: 0 2rem;
         }
 
-        /* Header */
+        .floaters {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .floater {
+            position: absolute;
+            top: 0; left: 0;
+            color: var(--ink-dimmer);
+            will-change: transform;
+        }
+        .floater svg { display: block; }
+
+        header, main, footer { position: relative; z-index: 1; }
+
         header {
-            padding: var(--space-sm) 0;
-            border-bottom: 1px solid var(--gray-200);
+            padding: 1.25rem 0;
+            border-bottom: 1px solid var(--line);
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
         }
 
         .header-inner {
@@ -68,141 +80,227 @@ layout: null
         }
 
         .logo {
-            font-size: 1.125rem;
-            font-weight: 600;
-            letter-spacing: -0.02em;
-            color: var(--black);
+            font-family: var(--display);
+            font-weight: 900;
+            font-size: 1.25rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--ink);
             text-decoration: none;
         }
-
-        .logo span {
-            color: var(--accent);
-        }
+        .logo span { color: var(--accent); }
 
         nav a {
-            color: var(--gray-600);
+            font-family: var(--mono);
+            color: var(--ink-dim);
             text-decoration: none;
-            font-size: 0.875rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
             transition: color 0.2s ease;
         }
+        nav a:hover { color: var(--accent); }
 
-        nav a:hover {
-            color: var(--black);
+        main { padding: 6rem 0 4rem; }
+
+        .page-label {
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
         }
-
-        /* Main */
-        main {
-            padding: var(--space-xl) 0;
+        .page-label::before {
+            content: "";
+            width: 24px;
+            height: 1px;
+            background: var(--accent);
         }
 
         .page-title {
-            font-size: 2.5rem;
-            font-weight: 600;
-            letter-spacing: -0.03em;
-            margin-bottom: var(--space-xs);
+            font-family: var(--display);
+            font-weight: 900;
+            font-size: clamp(3rem, 8vw, 5.5rem);
+            line-height: 0.9;
+            letter-spacing: -0.01em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
         }
 
         .page-subtitle {
-            color: var(--gray-600);
+            color: var(--ink-dim);
             font-size: 1.125rem;
-            margin-bottom: var(--space-lg);
+            max-width: 560px;
+            margin-bottom: 4rem;
         }
 
-        /* Posts List */
         .posts-list {
             list-style: none;
+            border-top: 1px solid var(--line);
         }
 
         .post-item {
-            padding: var(--space-md) 0;
-            border-bottom: 1px solid var(--gray-200);
-        }
-
-        .post-item:first-child {
-            padding-top: 0;
+            border-bottom: 1px solid var(--line);
         }
 
         .post-link {
+            display: grid;
+            grid-template-columns: 60px 1fr auto;
+            gap: 2rem;
+            align-items: center;
+            padding: 2rem 0;
             text-decoration: none;
             color: inherit;
-            display: block;
-            transition: all 0.2s ease;
+            transition: all 0.25s ease;
+        }
+        .post-link:hover { padding-left: 1rem; }
+        .post-link:hover h2 { color: var(--accent); }
+
+        .post-num {
+            font-family: var(--mono);
+            font-size: 0.75rem;
+            color: var(--ink-dimmer);
+            letter-spacing: 0.15em;
+            align-self: start;
+            padding-top: 0.3rem;
         }
 
-        .post-link:hover h2 {
-            color: var(--accent);
-        }
-
-        .post-link h2 {
-            font-size: 1.25rem;
-            font-weight: 500;
-            margin-bottom: var(--space-xs);
+        .post-body h2 {
+            font-family: var(--display);
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            text-transform: uppercase;
+            color: var(--ink);
+            margin-bottom: 0.5rem;
             transition: color 0.2s ease;
-        }
-
-        .post-meta {
-            display: flex;
-            gap: var(--space-sm);
-            color: var(--gray-400);
-            font-size: 0.875rem;
+            line-height: 1.1;
         }
 
         .post-excerpt {
-            color: var(--gray-600);
-            margin-top: var(--space-xs);
+            color: var(--ink-dim);
+            font-size: 0.9375rem;
+            line-height: 1.6;
+            max-width: 640px;
         }
 
-        /* Empty State */
+        .post-meta {
+            font-family: var(--mono);
+            color: var(--ink-dimmer);
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            text-align: right;
+            white-space: nowrap;
+        }
+
         .empty-state {
+            padding: 4rem 0;
+            border-top: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+            color: var(--ink-dim);
+            font-family: var(--mono);
+            font-size: 0.85rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
             text-align: center;
-            padding: var(--space-xl) 0;
-            color: var(--gray-400);
         }
 
-        .empty-state p {
-            font-size: 1.125rem;
-        }
-
-        /* Footer */
         footer {
-            padding: var(--space-lg) 0;
-            border-top: 1px solid var(--gray-200);
-            margin-top: var(--space-xl);
+            padding: 2.5rem 0;
+            border-top: 1px solid var(--line);
+            margin-top: 4rem;
         }
-
-        footer p {
-            color: var(--gray-400);
-            font-size: 0.875rem;
-            text-align: center;
+        .footer-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-
+        footer p,
         footer a {
-            color: var(--gray-600);
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
             text-decoration: none;
         }
+        footer p { color: var(--ink-dimmer); }
+        footer a { color: var(--ink-dim); transition: color 0.2s ease; }
+        footer a:hover { color: var(--accent); }
 
-        footer a:hover {
-            color: var(--accent);
+        @media (max-width: 700px) {
+            .post-link { grid-template-columns: 40px 1fr; gap: 1rem; }
+            .post-meta { display: none; }
+            main { padding: 4rem 0 2rem; }
         }
 
-        @media (max-width: 600px) {
-            .page-title {
-                font-size: 2rem;
-            }
-
-            main {
-                padding: var(--space-lg) 0;
-            }
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            .floater { display: none; }
+            * { transition-duration: 0.01ms !important; }
         }
     </style>
 </head>
 <body>
+    <div class="floaters" id="floaters" aria-hidden="true"></div>
+
+    <svg style="display:none" aria-hidden="true">
+        <defs>
+            <symbol id="chip-wide" viewBox="0 0 60 36">
+                <rect x="10" y="6" width="40" height="24" stroke="currentColor" stroke-width="0.7" fill="none"/>
+                <circle cx="15" cy="11" r="0.9" fill="currentColor"/>
+                <rect x="3" y="9" width="7" height="1.4" fill="currentColor"/>
+                <rect x="3" y="14" width="7" height="1.4" fill="currentColor"/>
+                <rect x="3" y="19" width="7" height="1.4" fill="currentColor"/>
+                <rect x="3" y="24" width="7" height="1.4" fill="currentColor"/>
+                <rect x="50" y="9" width="7" height="1.4" fill="currentColor"/>
+                <rect x="50" y="14" width="7" height="1.4" fill="currentColor"/>
+                <rect x="50" y="19" width="7" height="1.4" fill="currentColor"/>
+                <rect x="50" y="24" width="7" height="1.4" fill="currentColor"/>
+            </symbol>
+            <symbol id="chip-square" viewBox="0 0 40 40">
+                <rect x="4" y="4" width="32" height="32" stroke="currentColor" stroke-width="0.7" fill="none"/>
+                <circle cx="9" cy="9" r="0.9" fill="currentColor"/>
+                <rect x="0" y="11" width="4" height="1.2" fill="currentColor"/>
+                <rect x="0" y="17" width="4" height="1.2" fill="currentColor"/>
+                <rect x="0" y="23" width="4" height="1.2" fill="currentColor"/>
+                <rect x="0" y="29" width="4" height="1.2" fill="currentColor"/>
+                <rect x="36" y="11" width="4" height="1.2" fill="currentColor"/>
+                <rect x="36" y="17" width="4" height="1.2" fill="currentColor"/>
+                <rect x="36" y="23" width="4" height="1.2" fill="currentColor"/>
+                <rect x="36" y="29" width="4" height="1.2" fill="currentColor"/>
+            </symbol>
+            <symbol id="dots" viewBox="0 0 30 18">
+                <circle cx="3" cy="3" r="0.8" fill="currentColor"/>
+                <circle cx="9" cy="3" r="0.8" fill="currentColor"/>
+                <circle cx="15" cy="3" r="0.8" fill="currentColor"/>
+                <circle cx="21" cy="3" r="0.8" fill="currentColor"/>
+                <circle cx="27" cy="3" r="0.8" fill="currentColor"/>
+                <circle cx="3" cy="9" r="0.8" fill="currentColor"/>
+                <circle cx="9" cy="9" r="0.8" fill="currentColor"/>
+                <circle cx="15" cy="9" r="0.8" fill="currentColor"/>
+                <circle cx="21" cy="9" r="0.8" fill="currentColor"/>
+                <circle cx="27" cy="9" r="0.8" fill="currentColor"/>
+                <circle cx="3" cy="15" r="0.8" fill="currentColor"/>
+                <circle cx="9" cy="15" r="0.8" fill="currentColor"/>
+                <circle cx="15" cy="15" r="0.8" fill="currentColor"/>
+                <circle cx="21" cy="15" r="0.8" fill="currentColor"/>
+                <circle cx="27" cy="15" r="0.8" fill="currentColor"/>
+            </symbol>
+        </defs>
+    </svg>
+
     <header>
         <div class="container">
             <div class="header-inner">
                 <a href="/" class="logo">Simplify<span>Ops</span></a>
                 <nav>
-                    <a href="/">Back to home</a>
+                    <a href="/">&larr; Back to home</a>
                 </nav>
             </div>
         </div>
@@ -210,7 +308,8 @@ layout: null
 
     <main>
         <div class="container">
-            <h1 class="page-title">Insights</h1>
+            <span class="page-label">Insights</span>
+            <h1 class="page-title">Field notes.</h1>
             <p class="page-subtitle">Thoughts on operations, hiring, and building systems that work.</p>
 
             {% if site.posts.size > 0 %}
@@ -218,20 +317,21 @@ layout: null
                 {% for post in site.posts %}
                 <li class="post-item">
                     <a href="{{ post.url }}" class="post-link">
-                        <h2>{{ post.title }}</h2>
-                        <div class="post-meta">
-                            <span>{{ post.date | date: "%B %Y" }}</span>
+                        <span class="post-num">{{ forloop.index | prepend: "00" | slice: -3, 3 }}</span>
+                        <div class="post-body">
+                            <h2>{{ post.title }}</h2>
+                            {% if post.description %}
+                            <p class="post-excerpt">{{ post.description }}</p>
+                            {% endif %}
                         </div>
-                        {% if post.description %}
-                        <p class="post-excerpt">{{ post.description }}</p>
-                        {% endif %}
+                        <span class="post-meta">{{ post.date | date: "%b %Y" }}</span>
                     </a>
                 </li>
                 {% endfor %}
             </ul>
             {% else %}
             <div class="empty-state">
-                <p>New articles coming soon.</p>
+                New articles coming soon.
             </div>
             {% endif %}
         </div>
@@ -239,8 +339,72 @@ layout: null
 
     <footer>
         <div class="container">
-            <p>&copy; 2026 SimplifyOps &bull; <a href="/#contact">Get in touch</a></p>
+            <div class="footer-inner">
+                <p>&copy; 2026 SimplifyOps</p>
+                <a href="/#contact">Get in touch</a>
+            </div>
         </div>
     </footer>
+
+    <script>
+        const FLOATER_COUNT = 5;
+        const SHAPES = ['chip-wide', 'chip-square', 'dots'];
+        const SIZES = [
+            { w: 60, h: 36 },
+            { w: 44, h: 44 },
+            { w: 34, h: 20 }
+        ];
+
+        const layer = document.getElementById('floaters');
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (!reduced) {
+            const floaters = [];
+            for (let i = 0; i < FLOATER_COUNT; i++) {
+                const idx = i % SHAPES.length;
+                const shape = SHAPES[idx];
+                const size = SIZES[idx];
+                const scale = 0.8 + Math.random() * 1.2;
+
+                const el = document.createElement('div');
+                el.className = 'floater';
+                el.innerHTML = `<svg width="${size.w * scale}" height="${size.h * scale}"><use href="#${shape}"/></svg>`;
+                el.style.opacity = (0.12 + Math.random() * 0.18).toFixed(2);
+                layer.appendChild(el);
+
+                const speed = 0.06 + Math.random() * 0.14;
+                const angle = Math.random() * Math.PI * 2;
+                floaters.push({
+                    el,
+                    x: Math.random() * window.innerWidth,
+                    y: Math.random() * window.innerHeight,
+                    dx: Math.cos(angle) * speed,
+                    dy: Math.sin(angle) * speed,
+                    rot: Math.random() * 360,
+                    dRot: (Math.random() - 0.5) * 0.12,
+                    w: size.w * scale,
+                    h: size.h * scale
+                });
+            }
+
+            let w = window.innerWidth, h = window.innerHeight;
+            window.addEventListener('resize', () => { w = window.innerWidth; h = window.innerHeight; });
+
+            function tick() {
+                for (const f of floaters) {
+                    f.x += f.dx;
+                    f.y += f.dy;
+                    f.rot += f.dRot;
+                    if (f.x < -f.w - 20) f.x = w + 10;
+                    if (f.x > w + 20) f.x = -f.w - 10;
+                    if (f.y < -f.h - 20) f.y = h + 10;
+                    if (f.y > h + 20) f.y = -f.h - 10;
+                    f.el.style.transform = `translate3d(${f.x}px, ${f.y}px, 0) rotate(${f.rot}deg)`;
+                }
+                requestAnimationFrame(tick);
+            }
+            tick();
+        }
+    </script>
 </body>
 </html>

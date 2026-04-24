@@ -10,75 +10,80 @@ layout: null
     <meta name="description" content="We help businesses simplify operations: process, people, tools. Strategic operations consulting for growing companies.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --black: #1a1a1a;
-            --white: #fafafa;
-            --gray-100: #f5f5f4;
-            --gray-200: #e7e5e4;
-            --gray-400: #a8a29e;
-            --gray-600: #57534e;
+            --bg: #0a0a0a;
+            --bg-2: #111111;
+            --ink: #f2f1ee;
+            --ink-dim: #8a8680;
+            --ink-dimmer: #55514c;
+            --line: #1f1d1b;
             --accent: #c4724a;
-            --accent-light: rgba(196, 114, 74, 0.08);
+            --accent-dim: rgba(196, 114, 74, 0.35);
 
-            --space-xs: 0.5rem;
-            --space-sm: 1rem;
-            --space-md: 2rem;
-            --space-lg: 4rem;
-            --space-xl: 8rem;
-            --space-2xl: 12rem;
-
-            --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --display: 'Big Shoulders Display', 'Inter', sans-serif;
+            --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --mono: 'JetBrains Mono', ui-monospace, monospace;
         }
 
-        html {
-            scroll-behavior: smooth;
-        }
+        html { scroll-behavior: smooth; }
 
         body {
-            font-family: var(--font);
-            color: var(--black);
-            background: var(--white);
+            font-family: var(--sans);
+            color: var(--ink);
+            background: var(--bg);
             line-height: 1.6;
             font-size: 16px;
             -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
         }
 
-        ::selection {
-            background: var(--accent);
-            color: var(--white);
-        }
+        ::selection { background: var(--accent); color: var(--bg); }
 
         .container {
-            max-width: 1200px;
+            max-width: 1280px;
             margin: 0 auto;
-            padding: 0 var(--space-md);
+            padding: 0 2rem;
         }
+
+        /* Floating circuit layer */
+        .floaters {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .floater {
+            position: absolute;
+            top: 0; left: 0;
+            color: var(--ink-dimmer);
+            will-change: transform;
+        }
+
+        .floater svg { display: block; }
+
+        /* Everything above the floaters */
+        header, main, footer { position: relative; z-index: 1; }
 
         /* Header */
         header {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            padding: var(--space-sm) 0;
-            background: rgba(250, 250, 250, 0.9);
-            backdrop-filter: blur(10px);
-            z-index: 100;
+            top: 0; left: 0; right: 0;
+            padding: 1.25rem 0;
+            background: rgba(10, 10, 10, 0.75);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            z-index: 50;
             border-bottom: 1px solid transparent;
             transition: border-color 0.3s ease;
         }
 
-        header.scrolled {
-            border-bottom-color: var(--gray-200);
-        }
+        header.scrolled { border-bottom-color: var(--line); }
 
         .header-inner {
             display: flex;
@@ -87,142 +92,220 @@ layout: null
         }
 
         .logo {
-            font-size: 1.125rem;
-            font-weight: 600;
-            letter-spacing: -0.02em;
-            color: var(--black);
+            font-family: var(--display);
+            font-weight: 900;
+            font-size: 1.25rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--ink);
             text-decoration: none;
         }
-
-        .logo span {
-            color: var(--accent);
-        }
+        .logo span { color: var(--accent); }
 
         nav a {
-            color: var(--gray-600);
+            font-family: var(--mono);
+            color: var(--ink-dim);
             text-decoration: none;
-            font-size: 0.875rem;
-            margin-left: var(--space-md);
+            font-size: 0.75rem;
+            margin-left: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
             transition: color 0.2s ease;
         }
+        nav a:hover { color: var(--ink); }
 
-        nav a:hover {
-            color: var(--black);
-        }
-
-        /* Hero */
+        /* HERO */
         .hero {
             min-height: 100vh;
             display: flex;
             align-items: center;
-            padding: var(--space-2xl) 0;
+            padding: 8rem 0 6rem;
+            position: relative;
         }
 
-        .hero-content {
-            max-width: 800px;
+        .hero-lockup {
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
         }
 
-        .hero h1 {
-            font-size: clamp(2.5rem, 6vw, 4rem);
-            font-weight: 600;
-            letter-spacing: -0.03em;
-            line-height: 1.1;
-            margin-bottom: var(--space-md);
+        .hero-kicker {
+            font-family: var(--mono);
+            font-size: 0.75rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--ink-dim);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .hero-kicker::before {
+            content: "";
+            display: inline-block;
+            width: 40px;
+            height: 1px;
+            background: var(--accent);
         }
 
-        .hero .subtitle {
-            font-size: 1.25rem;
-            color: var(--gray-600);
-            max-width: 600px;
-            margin-bottom: var(--space-lg);
+        .hero-title {
+            font-family: var(--display);
+            font-weight: 900;
+            font-size: clamp(4.5rem, 14vw, 11rem);
+            line-height: 0.85;
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+            color: var(--ink);
+        }
+
+        .hero-title .row {
+            display: block;
+            position: relative;
+        }
+
+        .hero-title .row-2 {
+            color: transparent;
+            -webkit-text-stroke: 2px var(--ink);
+            padding-left: 0.6em;
+        }
+
+        .hero-title .tick {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .hero-sub {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: end;
+            gap: 3rem;
+            max-width: 900px;
+            padding-top: 1rem;
+            border-top: 1px solid var(--line);
+        }
+
+        .hero-tagline {
+            font-size: 1.125rem;
+            color: var(--ink-dim);
+            max-width: 520px;
+            line-height: 1.6;
+            padding-top: 1.5rem;
+        }
+
+        .hero-meta {
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--ink-dimmer);
+            text-align: right;
+            padding-top: 1.5rem;
+            line-height: 1.8;
+        }
+        .hero-meta strong {
+            color: var(--ink);
+            font-weight: 500;
         }
 
         .cta-link {
             display: inline-flex;
             align-items: center;
-            gap: var(--space-xs);
-            color: var(--black);
+            gap: 0.75rem;
+            color: var(--ink);
             text-decoration: none;
-            font-weight: 500;
-            padding-bottom: 2px;
-            border-bottom: 1px solid var(--black);
-            transition: all 0.2s ease;
+            font-family: var(--mono);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--ink);
+            transition: all 0.25s ease;
+            width: fit-content;
         }
+        .cta-link:hover { color: var(--accent); border-bottom-color: var(--accent); }
+        .cta-link:hover svg { transform: translateX(6px); }
+        .cta-link svg { transition: transform 0.25s ease; }
 
-        .cta-link:hover {
-            color: var(--accent);
-            border-bottom-color: var(--accent);
-        }
-
-        .cta-link svg {
-            transition: transform 0.2s ease;
-        }
-
-        .cta-link:hover svg {
-            transform: translateX(4px);
-        }
-
-        /* Section Styles */
+        /* Sections */
         section {
-            padding: var(--space-xl) 0;
+            padding: 7rem 0;
+            position: relative;
         }
 
         .section-label {
-            font-size: 0.75rem;
+            font-family: var(--mono);
+            font-size: 0.7rem;
             font-weight: 500;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.25em;
             color: var(--accent);
-            margin-bottom: var(--space-sm);
+            margin-bottom: 1.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .section-label::before {
+            content: "";
+            width: 24px;
+            height: 1px;
+            background: var(--accent);
         }
 
         .section-title {
-            font-size: clamp(1.75rem, 4vw, 2.5rem);
-            font-weight: 600;
-            letter-spacing: -0.02em;
-            margin-bottom: var(--space-lg);
-            max-width: 700px;
+            font-family: var(--display);
+            font-weight: 700;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            line-height: 0.95;
+            letter-spacing: -0.01em;
+            text-transform: uppercase;
+            margin-bottom: 3rem;
+            max-width: 18ch;
+            color: var(--ink);
         }
 
         /* Pillars */
-        .pillars {
-            background: var(--gray-100);
-        }
+        .pillars { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 
         .pillars-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: var(--space-md);
-            margin-top: var(--space-lg);
+            gap: 0;
+            margin-top: 2rem;
+            border-left: 1px solid var(--line);
         }
 
         .pillar {
-            padding: var(--space-lg) var(--space-md);
-            background: var(--white);
-            border: 1px solid var(--gray-200);
-            transition: all 0.3s ease;
+            padding: 3rem 2rem;
+            border-right: 1px solid var(--line);
+            border-top: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+            background: var(--bg);
+            transition: background 0.3s ease;
+            position: relative;
         }
-
-        .pillar:hover {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 1px var(--accent);
-        }
+        .pillar:hover { background: var(--bg-2); }
+        .pillar:hover .pillar-number { color: var(--accent); }
 
         .pillar-number {
+            font-family: var(--mono);
             font-size: 0.75rem;
-            color: var(--gray-400);
-            margin-bottom: var(--space-md);
+            color: var(--ink-dimmer);
+            margin-bottom: 2.5rem;
+            letter-spacing: 0.15em;
+            transition: color 0.3s ease;
         }
 
         .pillar h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: var(--space-sm);
-            letter-spacing: -0.01em;
+            font-family: var(--display);
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            color: var(--ink);
         }
 
         .pillar p {
-            color: var(--gray-600);
+            color: var(--ink-dim);
             font-size: 0.9375rem;
             line-height: 1.7;
         }
@@ -231,281 +314,264 @@ layout: null
         .expertise-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: var(--space-lg);
-            margin-top: var(--space-lg);
+            gap: 0;
+            margin-top: 3rem;
+            border-top: 1px solid var(--line);
         }
 
         .expertise-item {
-            padding-bottom: var(--space-md);
-            border-bottom: 1px solid var(--gray-200);
+            padding: 2.5rem 0;
+            padding-right: 2rem;
+            border-bottom: 1px solid var(--line);
+            display: grid;
+            grid-template-columns: 60px 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+        .expertise-item:nth-child(even) { padding-left: 2rem; padding-right: 0; border-left: 1px solid var(--line); }
+
+        .expertise-num {
+            font-family: var(--mono);
+            font-size: 0.75rem;
+            color: var(--ink-dimmer);
+            letter-spacing: 0.15em;
+            padding-top: 0.35rem;
         }
 
         .expertise-item h3 {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: var(--space-xs);
-            letter-spacing: -0.01em;
+            font-family: var(--display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.01em;
+            text-transform: uppercase;
+            color: var(--ink);
         }
 
         .expertise-item p {
-            color: var(--gray-600);
+            color: var(--ink-dim);
             font-size: 0.9375rem;
         }
 
         /* Philosophy */
-        .philosophy {
-            background: var(--black);
-            color: var(--white);
-        }
-
-        .philosophy .section-label {
-            color: var(--accent);
-        }
-
-        .philosophy .section-title {
-            color: var(--white);
-        }
+        .philosophy { background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 
         .philosophy-content {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: var(--space-xl);
-            margin-top: var(--space-lg);
+            gap: 6rem;
+            margin-top: 2rem;
         }
 
         .philosophy-text p {
-            color: var(--gray-400);
+            color: var(--ink-dim);
             font-size: 1.0625rem;
             line-height: 1.8;
-            margin-bottom: var(--space-md);
+            margin-bottom: 1.5rem;
         }
-
-        .philosophy-text p:last-child {
-            margin-bottom: 0;
-        }
+        .philosophy-text p:last-child { margin-bottom: 0; }
 
         .philosophy-quote {
-            font-size: 1.5rem;
+            font-family: var(--display);
             font-weight: 500;
-            line-height: 1.4;
-            letter-spacing: -0.01em;
-            color: var(--white);
-            padding-left: var(--space-md);
+            font-size: 1.75rem;
+            line-height: 1.2;
+            letter-spacing: 0;
+            text-transform: uppercase;
+            color: var(--ink);
+            padding-left: 2rem;
             border-left: 2px solid var(--accent);
+            align-self: center;
         }
 
-        /* Blog Preview */
-        .blog-preview {
-            background: var(--gray-100);
-        }
-
+        /* Blog */
         .blog-link {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 60px 1fr auto;
+            gap: 2rem;
             align-items: center;
-            padding: var(--space-md) 0;
-            border-bottom: 1px solid var(--gray-200);
+            padding: 1.75rem 0;
+            border-bottom: 1px solid var(--line);
             text-decoration: none;
             color: inherit;
-            transition: all 0.2s ease;
+            transition: all 0.25s ease;
         }
+        .blog-link:first-of-type { border-top: 1px solid var(--line); }
+        .blog-link:hover { padding-left: 1rem; }
+        .blog-link:hover h3 { color: var(--accent); }
 
-        .blog-link:hover {
-            padding-left: var(--space-sm);
-        }
-
-        .blog-link:hover h3 {
-            color: var(--accent);
+        .blog-num {
+            font-family: var(--mono);
+            font-size: 0.75rem;
+            color: var(--ink-dimmer);
+            letter-spacing: 0.15em;
         }
 
         .blog-link h3 {
-            font-size: 1.125rem;
+            font-family: var(--display);
+            font-size: 1.5rem;
             font-weight: 500;
+            letter-spacing: 0.01em;
+            text-transform: uppercase;
+            color: var(--ink);
             transition: color 0.2s ease;
         }
 
-        .blog-link span {
-            color: var(--gray-400);
-            font-size: 0.875rem;
+        .blog-link span.desc {
+            font-family: var(--mono);
+            color: var(--ink-dim);
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            text-align: right;
         }
 
-        /* Contact */
-        .contact {
-            padding: var(--space-2xl) 0;
+        .blog-all {
+            margin-top: 1.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-family: var(--mono);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--ink-dim);
+            text-decoration: none;
+            transition: color 0.2s ease;
         }
+        .blog-all:hover { color: var(--accent); }
+
+        /* Contact */
+        .contact { padding: 10rem 0 8rem; }
 
         .contact-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: var(--space-xl);
+            gap: 6rem;
         }
 
         .contact-intro p {
-            color: var(--gray-600);
+            color: var(--ink-dim);
             font-size: 1.0625rem;
             line-height: 1.8;
+            max-width: 420px;
         }
 
-        .contact-form {
-            display: flex;
-            flex-direction: column;
-            gap: var(--space-sm);
-        }
+        .contact-form { display: flex; flex-direction: column; gap: 1.25rem; }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: var(--space-xs);
-        }
+        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
 
         .form-group label {
-            font-size: 0.875rem;
+            font-family: var(--mono);
+            font-size: 0.7rem;
             font-weight: 500;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--ink-dim);
         }
 
         .form-group input,
         .form-group textarea {
-            padding: var(--space-sm);
-            border: 1px solid var(--gray-200);
-            background: var(--white);
-            font-family: var(--font);
+            padding: 0.9rem 0;
+            border: none;
+            border-bottom: 1px solid var(--line);
+            background: transparent;
+            color: var(--ink);
+            font-family: var(--sans);
             font-size: 1rem;
             transition: border-color 0.2s ease;
         }
-
         .form-group input:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: var(--accent);
+            border-bottom-color: var(--accent);
         }
+        .form-group textarea { min-height: 120px; resize: vertical; }
 
-        .form-group textarea {
-            min-height: 150px;
-            resize: vertical;
-        }
-
-        /* Honeypot */
-        .hp-field {
-            position: absolute;
-            left: -9999px;
-        }
+        .hp-field { position: absolute; left: -9999px; }
 
         .submit-btn {
-            padding: var(--space-sm) var(--space-md);
-            background: var(--black);
-            color: var(--white);
-            border: none;
-            font-family: var(--font);
-            font-size: 1rem;
+            margin-top: 1rem;
+            padding: 1rem 2rem;
+            background: transparent;
+            color: var(--ink);
+            border: 1px solid var(--ink);
+            font-family: var(--mono);
+            font-size: 0.8rem;
             font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.25s ease;
             align-self: flex-start;
         }
-
-        .submit-btn:hover {
-            background: var(--accent);
-        }
+        .submit-btn:hover { background: var(--accent); border-color: var(--accent); color: var(--bg); }
 
         /* Footer */
         footer {
-            padding: var(--space-lg) 0;
-            border-top: 1px solid var(--gray-200);
+            padding: 2.5rem 0;
+            border-top: 1px solid var(--line);
         }
-
         .footer-inner {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-
         footer p {
-            color: var(--gray-400);
-            font-size: 0.875rem;
+            font-family: var(--mono);
+            color: var(--ink-dimmer);
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
         }
-
         footer a {
-            color: var(--gray-600);
+            font-family: var(--mono);
+            color: var(--ink-dim);
             text-decoration: none;
-            font-size: 0.875rem;
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
             transition: color 0.2s ease;
         }
+        footer a:hover { color: var(--accent); }
 
-        footer a:hover {
-            color: var(--accent);
-        }
-
-        /* Subtle animated accent line */
-        .accent-line {
-            width: 40px;
-            height: 2px;
-            background: var(--accent);
-            margin-bottom: var(--space-md);
-            animation: pulse 3s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; width: 40px; }
-            50% { opacity: 0.6; width: 60px; }
-        }
-
-        /* Responsive */
-        @media (max-width: 900px) {
-            .pillars-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .expertise-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .philosophy-content {
-                grid-template-columns: 1fr;
-                gap: var(--space-lg);
-            }
-
-            .contact-grid {
-                grid-template-columns: 1fr;
-                gap: var(--space-lg);
-            }
-        }
-
-        /* Mobile menu */
+        /* Mobile menu toggle */
         .menu-toggle {
             display: none;
             background: none;
             border: none;
             cursor: pointer;
-            padding: var(--space-xs);
+            padding: 0.5rem;
             z-index: 101;
         }
-
         .menu-toggle span {
             display: block;
             width: 24px;
             height: 2px;
-            background: var(--black);
+            background: var(--ink);
             margin: 5px 0;
             transition: all 0.3s ease;
         }
+        .menu-toggle.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+        .menu-toggle.active span:nth-child(2) { opacity: 0; }
+        .menu-toggle.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
 
-        .menu-toggle.active span:nth-child(1) {
-            transform: rotate(45deg) translate(5px, 5px);
-        }
-
-        .menu-toggle.active span:nth-child(2) {
-            opacity: 0;
-        }
-
-        .menu-toggle.active span:nth-child(3) {
-            transform: rotate(-45deg) translate(5px, -5px);
+        /* Responsive */
+        @media (max-width: 900px) {
+            .pillars-grid { grid-template-columns: 1fr; }
+            .expertise-grid { grid-template-columns: 1fr; border-left: 0; }
+            .expertise-item,
+            .expertise-item:nth-child(even) { padding: 2rem 0; padding-left: 0; border-left: 0; }
+            .philosophy-content { grid-template-columns: 1fr; gap: 3rem; }
+            .contact-grid { grid-template-columns: 1fr; gap: 3rem; }
+            .hero-sub { grid-template-columns: 1fr; gap: 1.5rem; }
+            .hero-meta { text-align: left; }
+            .blog-link { grid-template-columns: 40px 1fr; gap: 1rem; }
+            .blog-link span.desc { display: none; }
         }
 
         @media (max-width: 600px) {
-            .menu-toggle {
-                display: block;
-            }
-
+            .menu-toggle { display: block; }
             nav {
                 position: fixed;
                 top: 0;
@@ -513,64 +579,95 @@ layout: null
                 width: 70%;
                 max-width: 300px;
                 height: 100vh;
-                background: var(--white);
+                background: var(--bg);
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
                 align-items: center;
-                gap: var(--space-md);
+                gap: 2rem;
                 transition: right 0.3s ease;
-                box-shadow: -5px 0 20px rgba(0,0,0,0.1);
+                box-shadow: -5px 0 40px rgba(0,0,0,0.6);
+                border-left: 1px solid var(--line);
             }
+            nav.active { right: 0; }
+            nav a { margin: 0; font-size: 1rem; }
 
-            nav.active {
-                right: 0;
-            }
-
-            nav a {
-                margin: 0;
-                font-size: 1.25rem;
-            }
-
-            .hero {
-                min-height: auto;
-                padding: calc(var(--space-xl) + 60px) 0 var(--space-xl);
-            }
-
-            section {
-                padding: var(--space-lg) 0;
-            }
-
-            .philosophy-quote {
-                font-size: 1.25rem;
-            }
-
-            .blog-link {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: var(--space-xs);
-            }
-
-            .blog-link span {
-                text-align: left;
-            }
+            .hero { min-height: auto; padding: calc(6rem + 60px) 0 4rem; }
+            section { padding: 4rem 0; }
+            .philosophy-quote { font-size: 1.25rem; padding-left: 1.25rem; }
         }
 
-        /* Reduced motion */
         @media (prefers-reduced-motion: reduce) {
-            html {
-                scroll-behavior: auto;
-            }
-            .accent-line {
-                animation: none;
-            }
-            * {
-                transition-duration: 0.01ms !important;
-            }
+            html { scroll-behavior: auto; }
+            .floater { display: none; }
+            * { transition-duration: 0.01ms !important; }
         }
     </style>
 </head>
 <body>
+    <div class="floaters" id="floaters" aria-hidden="true"></div>
+
+    <svg style="display:none" aria-hidden="true">
+        <defs>
+            <symbol id="chip-wide" viewBox="0 0 60 36">
+                <rect x="10" y="6" width="40" height="24" stroke="currentColor" stroke-width="0.7" fill="none"/>
+                <circle cx="15" cy="11" r="0.9" fill="currentColor"/>
+                <rect x="3" y="9" width="7" height="1.4" fill="currentColor"/>
+                <rect x="3" y="14" width="7" height="1.4" fill="currentColor"/>
+                <rect x="3" y="19" width="7" height="1.4" fill="currentColor"/>
+                <rect x="3" y="24" width="7" height="1.4" fill="currentColor"/>
+                <rect x="50" y="9" width="7" height="1.4" fill="currentColor"/>
+                <rect x="50" y="14" width="7" height="1.4" fill="currentColor"/>
+                <rect x="50" y="19" width="7" height="1.4" fill="currentColor"/>
+                <rect x="50" y="24" width="7" height="1.4" fill="currentColor"/>
+            </symbol>
+            <symbol id="chip-square" viewBox="0 0 40 40">
+                <rect x="4" y="4" width="32" height="32" stroke="currentColor" stroke-width="0.7" fill="none"/>
+                <circle cx="9" cy="9" r="0.9" fill="currentColor"/>
+                <circle cx="14" cy="9" r="0.6" fill="currentColor" opacity="0.5"/>
+                <circle cx="19" cy="9" r="0.6" fill="currentColor" opacity="0.5"/>
+                <circle cx="9" cy="14" r="0.6" fill="currentColor" opacity="0.5"/>
+                <circle cx="9" cy="19" r="0.6" fill="currentColor" opacity="0.5"/>
+                <rect x="0" y="11" width="4" height="1.2" fill="currentColor"/>
+                <rect x="0" y="17" width="4" height="1.2" fill="currentColor"/>
+                <rect x="0" y="23" width="4" height="1.2" fill="currentColor"/>
+                <rect x="0" y="29" width="4" height="1.2" fill="currentColor"/>
+                <rect x="36" y="11" width="4" height="1.2" fill="currentColor"/>
+                <rect x="36" y="17" width="4" height="1.2" fill="currentColor"/>
+                <rect x="36" y="23" width="4" height="1.2" fill="currentColor"/>
+                <rect x="36" y="29" width="4" height="1.2" fill="currentColor"/>
+            </symbol>
+            <symbol id="connector" viewBox="0 0 48 20">
+                <rect x="2" y="2" width="44" height="16" stroke="currentColor" stroke-width="0.7" fill="none"/>
+                <rect x="6" y="6" width="3" height="8" fill="currentColor" opacity="0.7"/>
+                <rect x="11" y="6" width="3" height="8" fill="currentColor" opacity="0.7"/>
+                <rect x="16" y="6" width="3" height="8" fill="currentColor" opacity="0.7"/>
+                <rect x="21" y="6" width="3" height="8" fill="currentColor" opacity="0.7"/>
+                <rect x="26" y="6" width="3" height="8" fill="currentColor" opacity="0.7"/>
+                <rect x="31" y="6" width="3" height="8" fill="currentColor" opacity="0.7"/>
+                <rect x="36" y="6" width="3" height="8" fill="currentColor" opacity="0.7"/>
+                <rect x="41" y="6" width="2" height="8" fill="currentColor" opacity="0.7"/>
+            </symbol>
+            <symbol id="dots" viewBox="0 0 30 18">
+                <circle cx="3" cy="3" r="0.8" fill="currentColor"/>
+                <circle cx="9" cy="3" r="0.8" fill="currentColor"/>
+                <circle cx="15" cy="3" r="0.8" fill="currentColor"/>
+                <circle cx="21" cy="3" r="0.8" fill="currentColor"/>
+                <circle cx="27" cy="3" r="0.8" fill="currentColor"/>
+                <circle cx="3" cy="9" r="0.8" fill="currentColor"/>
+                <circle cx="9" cy="9" r="0.8" fill="currentColor"/>
+                <circle cx="15" cy="9" r="0.8" fill="currentColor"/>
+                <circle cx="21" cy="9" r="0.8" fill="currentColor"/>
+                <circle cx="27" cy="9" r="0.8" fill="currentColor"/>
+                <circle cx="3" cy="15" r="0.8" fill="currentColor"/>
+                <circle cx="9" cy="15" r="0.8" fill="currentColor"/>
+                <circle cx="15" cy="15" r="0.8" fill="currentColor"/>
+                <circle cx="21" cy="15" r="0.8" fill="currentColor"/>
+                <circle cx="27" cy="15" r="0.8" fill="currentColor"/>
+            </symbol>
+        </defs>
+    </svg>
+
     <header id="header">
         <div class="container">
             <div class="header-inner">
@@ -590,141 +687,165 @@ layout: null
         </div>
     </header>
 
-    <section class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <div class="accent-line"></div>
-                <h1>We help businesses simplify operations.</h1>
-                <p class="subtitle">People. Process. Tools. We work with growing companies to build operations that scale without the chaos.</p>
-                <a href="#contact" class="cta-link">
-                    Start a conversation
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <section class="pillars">
-        <div class="container">
-            <span class="section-label">What We Do</span>
-            <h2 class="section-title">Three pillars of operational excellence</h2>
-            <div class="pillars-grid">
-                <div class="pillar">
-                    <span class="pillar-number">01</span>
-                    <h3>People</h3>
-                    <p>Hire deliberately. Onboard effectively. Manage precisely (enable high performers and manage out low performers). We bring structure to the human side of operations without losing the human element.</p>
-                </div>
-                <div class="pillar">
-                    <span class="pillar-number">02</span>
-                    <h3>Process</h3>
-                    <p>Document, systematize, and optimize how work gets done. We help you build processes that are clear enough to follow and flexible enough to evolve.</p>
-                </div>
-                <div class="pillar">
-                    <span class="pillar-number">03</span>
-                    <h3>Tools</h3>
-                    <p>The right tools at the right time. We help you choose, implement, and integrate systems that actually serve your business instead of creating more work.</p>
+    <main>
+        <section class="hero">
+            <div class="container">
+                <div class="hero-lockup">
+                    <div class="hero-kicker">Operations Consulting / Est. 2026</div>
+                    <h1 class="hero-title">
+                        <span class="row">Simplify<span class="tick">.</span></span>
+                        <span class="row row-2">Operations</span>
+                    </h1>
+                    <div class="hero-sub">
+                        <p class="hero-tagline">People. Process. Tools. We work with growing companies to build operations that scale without the chaos.</p>
+                        <div class="hero-meta">
+                            <strong>Three pillars</strong><br>
+                            Clarity / Structure / Signal
+                        </div>
+                    </div>
+                    <a href="#contact" class="cta-link">
+                        Start a conversation
+                        <svg width="20" height="10" viewBox="0 0 20 10" fill="none">
+                            <path d="M1 5h17M14 1l4 4-4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="square"/>
+                        </svg>
+                    </a>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section id="expertise">
-        <div class="container">
-            <span class="section-label">Expertise</span>
-            <h2 class="section-title">Where we focus</h2>
-            <div class="expertise-grid">
-                <div class="expertise-item">
-                    <h3>Hiring & Onboarding</h3>
-                    <p>Deliberate hiring processes. 30-60-90 day plans. Setting people up for success from day one with clear expectations and binary milestones.</p>
-                </div>
-                <div class="expertise-item">
-                    <h3>Performance Management</h3>
-                    <p>After-action reviews. Performance frameworks. Transparent feedback systems that develop people and catch problems early.</p>
-                </div>
-                <div class="expertise-item">
-                    <h3>Operating Systems</h3>
-                    <p>EOS implementation. Quarterly rocks. Scorecards and meeting rhythms. Bringing traction to your vision.</p>
-                </div>
-                <div class="expertise-item">
-                    <h3>Process Documentation</h3>
-                    <p>Capturing how your business actually works. Playbooks that people use. Systems that scale.</p>
+        <section class="pillars">
+            <div class="container">
+                <span class="section-label">What We Do</span>
+                <h2 class="section-title">Three pillars of operational excellence</h2>
+                <div class="pillars-grid">
+                    <div class="pillar">
+                        <div class="pillar-number">01 / PEOPLE</div>
+                        <h3>People</h3>
+                        <p>Hire deliberately. Onboard effectively. Manage precisely &mdash; enable high performers and manage out low performers. We bring structure to the human side of operations without losing the human element.</p>
+                    </div>
+                    <div class="pillar">
+                        <div class="pillar-number">02 / PROCESS</div>
+                        <h3>Process</h3>
+                        <p>Document, systematize, and optimize how work gets done. We help you build processes that are clear enough to follow and flexible enough to evolve.</p>
+                    </div>
+                    <div class="pillar">
+                        <div class="pillar-number">03 / TOOLS</div>
+                        <h3>Tools</h3>
+                        <p>The right tools at the right time. We help you choose, implement, and integrate systems that actually serve your business instead of creating more work.</p>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section id="philosophy" class="philosophy">
-        <div class="container">
-            <span class="section-label">Approach</span>
-            <h2 class="section-title">How we think about operations</h2>
-            <div class="philosophy-content">
-                <div class="philosophy-text">
-                    <p>We believe in doing things manually first. Before you automate, before you scale, you need to understand what actually works. The best systems come from deeply understanding the work.</p>
-                    <p>We also believe in simplicity. Not every problem needs a tool. Not every process needs documentation. We help you figure out what matters and ignore the rest.</p>
-                </div>
-                <div class="philosophy-quote">
-                    "Vision without traction is hallucination. We're here to help you execute."
+        <section id="expertise">
+            <div class="container">
+                <span class="section-label">Expertise</span>
+                <h2 class="section-title">Where we focus</h2>
+                <div class="expertise-grid">
+                    <div class="expertise-item">
+                        <div class="expertise-num">001</div>
+                        <div>
+                            <h3>Hiring &amp; Onboarding</h3>
+                            <p>Deliberate hiring processes. 30-60-90 day plans. Setting people up for success from day one with clear expectations and binary milestones.</p>
+                        </div>
+                    </div>
+                    <div class="expertise-item">
+                        <div class="expertise-num">002</div>
+                        <div>
+                            <h3>Performance Management</h3>
+                            <p>After-action reviews. Performance frameworks. Transparent feedback systems that develop people and catch problems early.</p>
+                        </div>
+                    </div>
+                    <div class="expertise-item">
+                        <div class="expertise-num">003</div>
+                        <div>
+                            <h3>Operating Systems</h3>
+                            <p>EOS implementation. Quarterly rocks. Scorecards and meeting rhythms. Bringing traction to your vision.</p>
+                        </div>
+                    </div>
+                    <div class="expertise-item">
+                        <div class="expertise-num">004</div>
+                        <div>
+                            <h3>Process Documentation</h3>
+                            <p>Capturing how your business actually works. Playbooks that people use. Systems that scale.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section id="blog" class="blog-preview">
-        <div class="container">
-            <span class="section-label">Insights</span>
-            <h2 class="section-title">Recent thinking</h2>
-            {% if site.posts.size > 0 %}
-                {% for post in site.posts limit:3 %}
-                <a href="{{ post.url }}" class="blog-link">
-                    <h3>{{ post.title }}</h3>
-                    <span>{{ post.description | default: post.excerpt | strip_html | truncate: 120 }}</span>
-                </a>
-                {% endfor %}
-                {% if site.posts.size > 3 %}
-                <a href="/blog/" class="blog-link" style="justify-content: center;">
-                    <span>View all posts</span>
+        <section id="philosophy" class="philosophy">
+            <div class="container">
+                <span class="section-label">Approach</span>
+                <h2 class="section-title">How we think about operations</h2>
+                <div class="philosophy-content">
+                    <div class="philosophy-text">
+                        <p>We believe in doing things manually first. Before you automate, before you scale, you need to understand what actually works. The best systems come from deeply understanding the work.</p>
+                        <p>We also believe in simplicity. Not every problem needs a tool. Not every process needs documentation. We help you figure out what matters and ignore the rest.</p>
+                    </div>
+                    <div class="philosophy-quote">
+                        &ldquo;Vision without traction is hallucination. We&rsquo;re here to help you execute.&rdquo;
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="blog">
+            <div class="container">
+                <span class="section-label">Insights</span>
+                <h2 class="section-title">Recent thinking</h2>
+                {% if site.posts.size > 0 %}
+                    {% for post in site.posts limit:3 %}
+                    <a href="{{ post.url }}" class="blog-link">
+                        <span class="blog-num">{{ forloop.index | prepend: "00" | slice: -3, 3 }}</span>
+                        <h3>{{ post.title }}</h3>
+                        <span class="desc">{{ post.date | date: "%b %Y" }}</span>
+                    </a>
+                    {% endfor %}
+                    {% if site.posts.size > 3 %}
+                    <a href="/blog/" class="blog-all">
+                        View all posts
+                        <svg width="16" height="8" viewBox="0 0 16 8" fill="none"><path d="M1 4h13M11 1l3 3-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="square"/></svg>
+                    </a>
+                    {% endif %}
+                {% else %}
+                <a href="/blog/" class="blog-link">
+                    <span class="blog-num">001</span>
+                    <h3>Coming soon</h3>
+                    <span class="desc">Operations &middot; Hiring &middot; Systems</span>
                 </a>
                 {% endif %}
-            {% else %}
-            <a href="/blog/" class="blog-link">
-                <h3>Coming soon</h3>
-                <span>Check back for articles on operations, hiring, and building systems that work.</span>
-            </a>
-            {% endif %}
-        </div>
-    </section>
-
-    <section id="contact" class="contact">
-        <div class="container">
-            <div class="contact-grid">
-                <div class="contact-intro">
-                    <span class="section-label">Contact</span>
-                    <h2 class="section-title">Let's talk</h2>
-                    <p>Whether you're scaling fast and feeling the chaos, or just want a second opinion on how you're running things, we're happy to chat. No sales pitch, just a conversation.</p>
-                </div>
-                <form class="contact-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
-                    <!-- Honeypot field for spam prevention -->
-                    <input type="text" name="_gotcha" class="hp-field" tabindex="-1" autocomplete="off">
-
-                    <div class="form-group">
-                        <label for="name">Name</label>
-                        <input type="text" id="name" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="message">What's on your mind?</label>
-                        <textarea id="message" name="message" required></textarea>
-                    </div>
-                    <button type="submit" class="submit-btn">Send message</button>
-                </form>
             </div>
-        </div>
-    </section>
+        </section>
+
+        <section id="contact" class="contact">
+            <div class="container">
+                <div class="contact-grid">
+                    <div class="contact-intro">
+                        <span class="section-label">Contact</span>
+                        <h2 class="section-title">Let&rsquo;s talk</h2>
+                        <p>Whether you&rsquo;re scaling fast and feeling the chaos, or just want a second opinion on how you&rsquo;re running things, we&rsquo;re happy to chat. No sales pitch, just a conversation.</p>
+                    </div>
+                    <form class="contact-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+                        <input type="text" name="_gotcha" class="hp-field" tabindex="-1" autocomplete="off">
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="message">What&rsquo;s on your mind?</label>
+                            <textarea id="message" name="message" required></textarea>
+                        </div>
+                        <button type="submit" class="submit-btn">Send message</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
 
     <footer>
         <div class="container">
@@ -736,32 +857,86 @@ layout: null
     </footer>
 
     <script>
-        // Header scroll effect
+        // Header scroll
         const header = document.getElementById('header');
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 50) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
-            }
+            header.classList.toggle('scrolled', window.scrollY > 50);
         });
 
-        // Mobile menu toggle
+        // Mobile menu
         const menuToggle = document.getElementById('menuToggle');
         const nav = document.getElementById('nav');
-
         menuToggle.addEventListener('click', () => {
             menuToggle.classList.toggle('active');
             nav.classList.toggle('active');
         });
-
-        // Close menu when clicking a link
         nav.querySelectorAll('a').forEach(link => {
             link.addEventListener('click', () => {
                 menuToggle.classList.remove('active');
                 nav.classList.remove('active');
             });
         });
+
+        // Floating circuit drift
+        const FLOATER_COUNT = 9;
+        const SHAPES = ['chip-wide', 'chip-square', 'connector', 'dots'];
+        const SIZES = [
+            { w: 60, h: 36 },
+            { w: 44, h: 44 },
+            { w: 54, h: 22 },
+            { w: 34, h: 20 }
+        ];
+
+        const layer = document.getElementById('floaters');
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (!reduced) {
+            const floaters = [];
+            for (let i = 0; i < FLOATER_COUNT; i++) {
+                const idx = i % SHAPES.length;
+                const shape = SHAPES[idx];
+                const size = SIZES[idx];
+                const scale = 0.8 + Math.random() * 1.4;
+
+                const el = document.createElement('div');
+                el.className = 'floater';
+                el.innerHTML = `<svg width="${size.w * scale}" height="${size.h * scale}"><use href="#${shape}"/></svg>`;
+                el.style.opacity = (0.18 + Math.random() * 0.25).toFixed(2);
+                layer.appendChild(el);
+
+                const speed = 0.08 + Math.random() * 0.18;
+                const angle = Math.random() * Math.PI * 2;
+                floaters.push({
+                    el,
+                    x: Math.random() * window.innerWidth,
+                    y: Math.random() * window.innerHeight,
+                    dx: Math.cos(angle) * speed,
+                    dy: Math.sin(angle) * speed,
+                    rot: Math.random() * 360,
+                    dRot: (Math.random() - 0.5) * 0.15,
+                    w: size.w * scale,
+                    h: size.h * scale
+                });
+            }
+
+            let w = window.innerWidth, h = window.innerHeight;
+            window.addEventListener('resize', () => { w = window.innerWidth; h = window.innerHeight; });
+
+            function tick() {
+                for (const f of floaters) {
+                    f.x += f.dx;
+                    f.y += f.dy;
+                    f.rot += f.dRot;
+                    if (f.x < -f.w - 20) f.x = w + 10;
+                    if (f.x > w + 20) f.x = -f.w - 10;
+                    if (f.y < -f.h - 20) f.y = h + 10;
+                    if (f.y > h + 20) f.y = -f.h - 10;
+                    f.el.style.transform = `translate3d(${f.x}px, ${f.y}px, 0) rotate(${f.rot}deg)`;
+                }
+                requestAnimationFrame(tick);
+            }
+            tick();
+        }
     </script>
 </body>
 </html>
