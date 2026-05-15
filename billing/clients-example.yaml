@@ -17,6 +17,11 @@ business:
   address: "123 Main St, Anytown, MA 00000"
   email: "you@yourbusiness.com"
 
+signature:
+  agent_name: "Your Agent Name"
+  owner_name: "Your Name"
+  company: "Your Company"
+
 payment:
   venmo: "@your-venmo"
   check: "Made out to Your Name, send to address on invoice"

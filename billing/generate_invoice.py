@@ -157,14 +157,17 @@ def html_to_pdf(html_content, output_path):
     return output_path
 
 
-def build_email_body(client_name, month, year):
+def build_email_body(client_name, month, year, signature):
+    agent = signature.get("agent_name", "")
+    owner = signature.get("owner_name", "")
+    company = signature.get("company", "")
     return f"""Hey {client_name},
 
 Hope you're doing well! Attached is your invoice for {month} {year} — let me know if anything looks off.
 
 Thanks,
-James Bott
-On behalf of Anthony DeFilippo | SimplifyOps"""
+{agent}
+On behalf of {owner} | {company}"""
 
 
 def send_email(config, to_email, subject, body, attachment_path, filename=None):
@@ -259,7 +262,7 @@ def main():
             sys.exit(1)
 
         subject = f"Invoice for {month.capitalize()} {year} — SimplifyOps"
-        body = build_email_body(client_config["contact_name"], month.capitalize(), year)
+        body = build_email_body(client_config["contact_name"], month.capitalize(), year, config.get("signature", {}))
         filename = f"invoice-{client_name}-{month.capitalize()}-{year}.pdf"
 
         send_email(config, to_email, subject, body, result_path, filename=filename)
