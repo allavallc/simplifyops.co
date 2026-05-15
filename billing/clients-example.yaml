@@ -1,0 +1,36 @@
+# Billing Clients Configuration — EXAMPLE FILE
+# Copy this to clients.yaml and fill in your real values.
+# clients.yaml is gitignored and must never be committed.
+
+google_sheet_id: "your-google-sheet-id-here"
+service_account_key: "/path/to/your/service-account-key.json"
+
+smtp:
+  host: "smtp.gmail.com"
+  port: 587
+  username: "you@gmail.com"
+  password: "your-gmail-app-password"
+  from_name: "Your Business Name"
+
+business:
+  name: "Your LLC"
+  address: "123 Main St, Anytown, MA 00000"
+  email: "you@yourbusiness.com"
+
+payment:
+  venmo: "@your-venmo"
+  check: "Made out to Your Name, send to address on invoice"
+  zelle: "Zelle using you@email.com or 555.000.0000"
+
+clients:
+  BobsPlumbing:
+    sheet_tab: "Bob - Bob's Plumbing"
+    contact_name: "Bob's Plumbing"
+    contact_email: "bob@bobsplumbing.com"
+    rate: 100
+
+  AcmeInc:
+    sheet_tab: "Jane - Acme Inc"
+    contact_name: "Acme Inc"
+    contact_email: "jane@acmeinc.com"
+    rate: 150

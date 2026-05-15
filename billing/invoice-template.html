@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            color: #1a1a1a;
+            font-size: 12px;
+            line-height: 1.3;
+        }
+        h1 {
+            font-size: 20px;
+            margin: 0 0 10px 0;
+        }
+        h2 {
+            font-size: 14px;
+            margin: 10px 0 5px 0;
+        }
+        p { margin: 2px 0; }
+        hr {
+            border: none;
+            border-top: 1px solid #ddd;
+            margin: 10px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 5px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 4px 6px;
+            text-align: left;
+        }
+        th {
+            background: #f5f5f5;
+            font-weight: 600;
+        }
+        .amount-due {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+        .footer {
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>INVOICE</h1>
+
+    <p><strong>From:</strong> {{ business.name }} | <strong>Address:</strong> {{ business.address }}</p>
+    <p><strong>Date:</strong> {{ invoice_date }} | <strong>Invoice #:</strong> {{ invoice_number }}</p>
+    <p><strong>Bill Month:</strong> {{ month }} {{ year }}</p>
+
+    <hr>
+
+    <p><strong>Bill To:</strong> {{ client.contact_name }}</p>
+
+    <hr>
+
+    <h2>Services Rendered — {{ month }} {{ year }}</h2>
+
+    <table>
+        <tr><th>Date</th><th>Hours</th><th>Description</th></tr>
+        {% for entry in entries %}
+        <tr><td>{{ entry.date }}</td><td>{{ entry.hours }}h {{ entry.minutes }}m</td><td>{{ entry.notes }}</td></tr>
+        {% endfor %}
+    </table>
+
+    <p><strong>Total Hours:</strong> {{ total_hours }} | <strong>Rate:</strong> ${{ rate }}/hour</p>
+
+    <p class="amount-due">Amount Due: ${{ amount_due }}</p>
+
+    <hr>
+
+    <p><strong>Payment Options:</strong></p>
+    <p>Venmo: {{ payment.venmo }}</p>
+    <p>Zelle: {{ payment.zelle }}</p>
+    <p>Check: {{ payment.check }}</p>
+
+    <hr>
+
+    <p class="footer">Payment due within 30 days. Thank you for your business!</p>
+</body>
+</html>

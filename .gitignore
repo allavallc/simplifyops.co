@@ -1,11 +1,18 @@
 # Sensitive files - NEVER commit
-billing/
 plan-architecture/
 scripts/
 souls/
 config.yaml
 
+# Billing — secrets stay local, code is committed
+billing/clients.yaml
+billing/sent_log.json
+billing/venv/
+billing/invoices/
+invoices/
+
 # Service account keys
+credentials/
 *.json
 !package.json
 !tsconfig.json
@@ -35,3 +42,4 @@ _site/
 .sass-cache/
 .jekyll-cache/
 .jekyll-metadata
+# change-mate/ is dev-only tooling; do not ignore unless using local-only mode (see change-mate/CHANGEMATE.md)
