@@ -50,12 +50,12 @@ Year defaults to current year. Pass explicitly when billing for a prior year (e.
 - Casual but professional tone
 - Do NOT include hours, rate, total, or payment details — those are on the invoice
 - Month in the email body must match the invoice attached
-- Signature format (from `billing/clients.yaml` `business` section):
+- Signature format (from `billing/clients.yaml` `signature` section):
 
 ```
 Thanks,
-James Bott
-On behalf of [business.owner] | SimplifyOps
+[signature.agent_name]
+On behalf of [signature.owner_name] | [signature.company]
 ```
 
 ## Duplicate Send Protection

@@ -200,7 +200,7 @@ def send_email(config, to_email, subject, body, attachment_path, filename=None):
 def main():
     if len(sys.argv) < 3:
         print("Usage: python generate_invoice.py <ClientName> <Month> [Year] [--send]")
-        print("Example: python generate_invoice.py ManagePro March 2026 --send")
+        print("Example: python generate_invoice.py ClientName March 2026 --send")
         sys.exit(1)
 
     client_name = sys.argv[1]
