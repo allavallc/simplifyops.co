@@ -13,21 +13,11 @@
 - Do not create helpers, utilities, or abstractions unless absolutely necessary
 - If a framework or tool provides a built-in solution, use it instead of writing custom code
 
-### Track Paperclip Modifications
-- **Every change** to Paperclip source code (`~/paperclip-wsl/paperclip-source/`) must be logged in `plan-architecture/paperclip-modifications.md`
-- Include: date, file path, what changed (with diff), and why
-- Do this automatically — do not wait for user to ask
-
 ### Explain Before Acting
 - **Always tell the user what you're going to do BEFORE doing it**
 - Explain what each command does and why
 - For non-trivial changes, ask "Want me to proceed?"
 - Never run commands silently or make changes without explanation
-
-### Test Before Rebuild
-- **Verify code compiles before telling user to rebuild Docker containers**
-- For Paperclip TypeScript: `pnpm --filter @paperclipai/server exec tsc --noEmit`
-- Only ask user to rebuild after confirming no compile errors
 
 ---
 
@@ -160,67 +150,6 @@ The form_id/configuration lives in the external service, not in this repo.
 - Contact: Formspree or equivalent
 - Content generation: Hermes Agent + Claude API
 - Web search: ddgs (DuckDuckGo CLI)
-
-## Development Environment (Windows + WSL + Docker)
-
-**Architecture:** Windows 11 → Docker Desktop → WSL2 (Ubuntu) → Containers
-
-**Key rules:**
-- Always run `docker compose` from **WSL**, not PowerShell or Git Bash
-- Disconnect VPN before starting Docker Desktop (they conflict)
-- Docker config lives at `C:\Users\adefilippo\.docker\config.json` (Windows side)
-
-**Docker crash recovery:**
-1. Quit Docker Desktop from system tray
-2. Restart from Start menu
-3. Wait for whale icon to stop animating
-4. Then run commands in WSL
-
-**Credential error fix:** If you see `docker-credential-desktop.exe` error, remove `credsStore` from the Windows Docker config file.
-
-## CEO Agent (James Bott)
-
-The CEO agent runs as a Docker-based service with persistent memory across sessions.
-
-**Architecture:** See `plan-architecture/ceo-architecture.md`
-
-### Running Services
-
-| Service | Purpose | Port |
-|---------|---------|------|
-| `paperclip-source-hermes-1` | Telegram gateway | - |
-| `honcho-api-1` | Cross-session memory | 8000 |
-| `paperclip-source-db-1` | Paperclip database | 5433 |
-
-### Start/Stop (WSL)
-
-```bash
-# Start
-cd ~/paperclip-wsl/paperclip-source && docker compose up -d
-
-# Stop
-cd ~/paperclip-wsl/paperclip-source && docker compose down
-
-# Check status
-docker ps
-```
-
-### Key Files
-
-| File | Purpose |
-|------|---------|
-| `souls/james-bott.md` | CEO persona definition |
-| `plan-architecture/ceo-architecture.md` | Full architecture docs |
-| `/opt/data/honcho.json` (in container) | Memory connection config |
-
-### Config Inside Container
-
-Hermes config lives inside the container (Docker volume sync issues with WSL). To edit:
-
-```bash
-docker exec -it paperclip-source-hermes-1 sh
-# Then edit /opt/data/config.yaml or /opt/data/honcho.json
-```
 
 ## Project Configuration
 

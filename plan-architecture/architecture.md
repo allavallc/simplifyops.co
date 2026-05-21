@@ -298,7 +298,6 @@ python3 billing/generate_invoice.py ManagePro March --send # generate + email
 
 - **Tavily API**: Native web search — add `TAVILY_API_KEY` to `.env` for built-in search (1000 free/month)
 - **Ollama**: Local LLM for offline/cheaper usage
-- **Paperclip**: Multi-agent orchestration with budget controls
 - **Scheduled runs**: Cron job to trigger weekly blog automatically
 - **Discord**: Multi-agent channels for different agent conversations
 - **Firebase**: User auth + database if site needs login

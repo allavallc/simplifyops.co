@@ -68,7 +68,7 @@ Notes:
 
 If you are working on the live system, start Hermes from the repo root so it picks up project-specific config.
 
-To stop the local stack, shut down the Docker services you started for Hermes / Paperclip / Postgres.
+To stop the local stack, shut down the Docker services you started for Hermes / Honcho.
 
 ## Graphify notes
 
