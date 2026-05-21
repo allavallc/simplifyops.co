@@ -1,45 +1,21 @@
-# Sensitive files - NEVER commit
-plan-architecture/
-scripts/
-souls/
-config.yaml
+# Local email workflow artifacts
+.email-workflow/
 
-# Billing — secrets stay local, code is committed
+# Credentials and secrets
+credentials/
+.env
 billing/clients.yaml
 billing/sent_log.json
-billing/venv/
-billing/invoices/
+
+# Generated artifacts
 invoices/
-
-# Service account keys
-credentials/
-*.json
-!package.json
-!tsconfig.json
-
-# Environment files
-.env
-.env.*
-*.env
-
-# Logs with potential PII
+graphify-out/
 logs/
 
-# Local development
-.hermes.md
-CLAUDE.md
+# Python
+billing/venv/
 __pycache__/
 *.pyc
-.DS_Store
-Thumbs.db
 
-# IDE
-.vscode/
-.idea/
-
-# Jekyll build
-_site/
-.sass-cache/
-.jekyll-cache/
-.jekyll-metadata
-# change-mate/ is dev-only tooling; do not ignore unless using local-only mode (see change-mate/CHANGEMATE.md)
+# Local machine-specific Claude Code settings
+.claude/settings.local.json
