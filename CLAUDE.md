@@ -5,7 +5,7 @@
 ### Permanent Fixes Over Quick Fixes
 - **Always distinguish** between a temporary/quick fix and a permanent fix
 - If proposing a quick fix, explicitly say "This is a temporary fix" and explain the permanent alternative
-- Default to permanent fixes (config files, environment variables, docker-compose.yml) over runtime commands that get wiped on restart
+- Default to permanent fixes (config files, environment variables, config files) over runtime commands that get wiped on restart
 
 ### Minimal Code
 - Write the **minimum code required** to solve the problem

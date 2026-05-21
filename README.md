@@ -68,7 +68,7 @@ Notes:
 
 If you are working on the live system, start Hermes from the repo root so it picks up project-specific config.
 
-To stop the local stack, shut down the Docker services you started for Hermes / Honcho.
+To stop the local stack, stop the Hermes gateway and Honcho processes you started.
 
 ## Graphify notes
 

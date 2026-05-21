@@ -45,7 +45,7 @@ Automated weekly blog system with a persistent AI CEO that:
                 └─► Send: Email via SMTP
 
 ┌─────────────────────────────────────────────────┐
-│  Honcho (Docker - localhost:8000)               │
+│  Honcho (localhost:8000)                        │
 │  ├─ PostgreSQL (session storage)                │
 │  ├─ Redis (cache)                               │
 │  ├─ API (FastAPI)                               │
@@ -194,12 +194,6 @@ Install: `pipx install duckduckgo-search`
 ### Gateway won't start (systemd error)
 Use `hermes gateway run` instead of `hermes gateway start` in WSL.
 
-### Honcho: Docker + VPN conflict
-Disconnect VPN before starting Docker Desktop.
-
-### Honcho: "Illegal option -" in entrypoint.sh
-Windows line endings. Fix: `wsl -e sed -i 's/\r$//' docker/entrypoint.sh`
-
 ### Honcho: "Missing client for X"
 Add dummy API keys to `.env` (features are disabled but Honcho validates providers on startup).
 
@@ -214,7 +208,7 @@ Honcho gives Hermes persistent memory across sessions. Running locally in storag
 
 ```powershell
 cd $env:USERPROFILE\honcho
-docker compose up -d
+honcho up -d
 ```
 
 Verify: http://localhost:8000/docs (Swagger UI)
@@ -223,7 +217,7 @@ Verify: http://localhost:8000/docs (Swagger UI)
 
 | File | Purpose |
 |------|---------|
-| `$env:USERPROFILE\honcho\.env` | Docker env (storage-only mode) |
+| `$env:USERPROFILE\honcho\.env` | Honcho env (storage-only mode) |
 | `~/.honcho/config.json` (WSL) | Hermes client config |
 
 ### Storage-Only .env
