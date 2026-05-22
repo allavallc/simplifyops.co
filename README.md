@@ -68,7 +68,7 @@ Notes:
 
 If you are working on the live system, start Hermes from the repo root so it picks up project-specific config.
 
-To stop the local stack, stop the Hermes gateway and Honcho processes you started.
+To stop the local stack, stop the Hermes gateway (Hindsight stops automatically after 5 minutes of inactivity).
 
 ## Graphify notes
 

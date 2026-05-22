@@ -19,14 +19,14 @@ Automated weekly blog system with a persistent AI CEO that:
 │  ├─ Claude API (model provider)                 │
 │  ├─ Telegram (communication)                    │
 │  ├─ ddgs (web search)                           │
-│  ├─ Honcho (cross-session memory)               │
+│  ├─ Hindsight (cross-session memory)               │
 │  └─ Skills (project-specific)                   │
 │       └─ billing/ (invoice generation)          │
 └──────────┬──────────────────────────────────────┘
            │
            ├─► Read: brain_business/ (knowledge base)
            ├─► Search: ddgs (trending topics)
-           ├─► Memory: Honcho (localhost:8000)
+           ├─► Memory: Hindsight (local embedded)
            ├─► Generate: Blog post draft
            ├─► Send: Draft to Human via Telegram
            ├─► Receive: "approve" or "revise: feedback"
@@ -45,11 +45,10 @@ Automated weekly blog system with a persistent AI CEO that:
                 └─► Send: Email via SMTP
 
 ┌─────────────────────────────────────────────────┐
-│  Honcho (localhost:8000)                        │
-│  ├─ PostgreSQL (session storage)                │
-│  ├─ Redis (cache)                               │
-│  ├─ API (FastAPI)                               │
-│  └─ Storage-only mode (no LLM costs)            │
+│  Hindsight (local embedded daemon)              │
+│  ├─ Knowledge graph + entity resolution         │
+│  ├─ Multi-strategy retrieval                    │
+│  └─ Auto-starts on first use, no config needed  │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -194,62 +193,43 @@ Install: `pipx install duckduckgo-search`
 ### Gateway won't start (systemd error)
 Use `hermes gateway run` instead of `hermes gateway start` in WSL.
 
-### Honcho: "Missing client for X"
-Add dummy API keys to `.env` (features are disabled but Honcho validates providers on startup).
+## Hindsight (Cross-Session Memory)
 
-### Honcho: Not connecting
-Ensure both `baseUrl` AND `apiKey` are set in `~/.honcho/config.json`.
+Hindsight is Hermes's built-in memory plugin — knowledge graph, entity resolution, and multi-strategy retrieval. Running in local embedded mode (no separate service needed; daemon starts automatically on first use).
 
-## Honcho (Cross-Session Memory)
-
-Honcho gives Hermes persistent memory across sessions. Running locally in storage-only mode (no LLM costs).
-
-### Start Honcho (PowerShell)
-
-```powershell
-cd $env:USERPROFILE\honcho
-honcho up -d
-```
-
-Verify: http://localhost:8000/docs (Swagger UI)
-
-### Honcho Config Files
-
-| File | Purpose |
-|------|---------|
-| `$env:USERPROFILE\honcho\.env` | Honcho env (storage-only mode) |
-| `~/.honcho/config.json` (WSL) | Hermes client config |
-
-### Storage-Only .env
-
-```
-EMBED_MESSAGES=false
-DERIVER_ENABLED=false
-SUMMARY_ENABLED=false
-DREAM_ENABLED=false
-LLM_ANTHROPIC_API_KEY=sk-ant-dummy-key-not-used
-LLM_GEMINI_API_KEY=dummy-gemini-key-not-used
-SUMMARY_PROVIDER=anthropic
-DERIVER_PROVIDER=anthropic
-DREAM_PROVIDER=anthropic
-```
-
-### Hermes Client Config (~/.honcho/config.json)
-
-```json
-{
-  "baseUrl": "http://localhost:8000",
-  "apiKey": "local-dev",
-  "enabled": true
-}
-```
-
-### Check Connection (WSL)
+### Setup (WSL)
 
 ```bash
-hermes honcho status
-# Should show "Connection... OK"
+hermes memory setup
+# Select "hindsight" → local_embedded mode
 ```
+
+Or manually:
+```bash
+hermes config set memory.provider hindsight
+echo "HINDSIGHT_LLM_API_KEY=your-anthropic-key" >> ~/.hermes/.env
+```
+
+### Config File
+
+`~/.hermes/hindsight/config.json` — created by setup wizard.
+
+Key settings:
+
+| Key | Value | Description |
+|-----|-------|-------------|
+| `mode` | `local_embedded` | Daemon runs locally, no external service |
+| `llm_provider` | `anthropic` | Used for memory extraction |
+| `auto_recall` | `true` | Recalls memories before each turn |
+| `auto_retain` | `true` | Retains conversation turns automatically |
+
+### Tools Available to Agent
+
+| Tool | Purpose |
+|------|---------|
+| `hindsight_recall` | Search memories (semantic + entity graph) |
+| `hindsight_reflect` | LLM-synthesized answer across memories |
+| `hindsight_retain` | Store a new memory with entity extraction |
 
 ## Billing Skill
 
