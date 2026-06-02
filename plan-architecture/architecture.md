@@ -1,5 +1,7 @@
 # SimplifyOps Architecture
 
+> Status: historical/working doc. For the live canonical architecture, use `plan/current-architecture.md`.
+
 ## Overview
 
 Automated weekly blog system with a persistent AI CEO that:
@@ -9,6 +11,25 @@ Automated weekly blog system with a persistent AI CEO that:
 4. Delegates writing to Content Manager
 5. Passes drafts to Human for approval
 6. Publishes to GitHub Pages
+
+## Current Runtime Architecture (Local)
+
+- Canonical ingress endpoint: `POST /messages`
+- Sources currently routed through same endpoint:
+  - `source=millis`
+  - `source=telegram`
+- Telegram webhook target: `/messages?source=telegram`
+- Millis compatibility endpoint retained: `POST /hana/respond` (for transition only)
+- Bridge service: `hana-bridge-millis/app/main.py`
+- Local backend mock for validation: `hana-bridge-millis/app/mock_hermes.py`
+
+## Robotics Control Architecture (current decision)
+
+- Hermes runtime: Raspberry Pi 5
+- ROS 2 runtime: Raspberry Pi 5
+- Real-time PWM bridge: Arduino Uno
+- Control path: user command -> Hermes -> ROS 2 control node -> serial/USB -> Arduino Uno -> PWM -> motor controller -> hub motor
+- Safety policy: deadman timeout, throttle cap, ramp limiting, emergency stop
 
 ## Components
 
@@ -26,7 +47,7 @@ Automated weekly blog system with a persistent AI CEO that:
            │
            ├─► Read: brain_business/ (knowledge base)
            ├─► Search: ddgs (trending topics)
-           ├─► Memory: Hindsight (local embedded)
+           ├─► Memory: Hindsight (local external API at localhost:8888)
            ├─► Generate: Blog post draft
            ├─► Send: Draft to Human via Telegram
            ├─► Receive: "approve" or "revise: feedback"
@@ -45,10 +66,10 @@ Automated weekly blog system with a persistent AI CEO that:
                 └─► Send: Email via SMTP
 
 ┌─────────────────────────────────────────────────┐
-│  Hindsight (local embedded daemon)              │
-│  ├─ Knowledge graph + entity resolution         │
-│  ├─ Multi-strategy retrieval                    │
-│  └─ Auto-starts on first use, no config needed  │
+│  Hindsight (local external service)              │
+│  ├─ Hindsight API on localhost:8888              │
+│  ├─ PostgreSQL backend + pgvector extension      │
+│  └─ Hermes provider mode: local_external         │
 └─────────────────────────────────────────────────┘
 ```
 
