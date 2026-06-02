@@ -1,3 +1,13 @@
+## Stack Setup Guide
+
+For a full explanation of how the James stack works (Hermes, Hindsight, the Telegram gateway, profiles, secrets, and service startup order), read:
+
+**`plan/james-stack-setup.md`**
+
+Start there before making any changes to this system.
+
+---
+
 ## Hermes Gateway — Known Issues & Fixes
 
 ### codex_runtime.py — SDK TypeError on get_final_response() (2026-05-26)
