@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}SimplifyOps{% endblock %} — Admin</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  {% block head %}{% endblock %}
+</head>
+<body>
+{% from "_icons.html" import icon %}
+{% set nav_items = [
+  ("/admin", "home", "Dashboard"),
+  ("/admin/people", "users", "People"),
+  ("/admin/companies", "companies", "Companies"),
+  ("/admin/inbox", "inbox", "Inbox"),
+  ("/admin/activity", "activity", "Activity"),
+  ("/admin/knowledge", "knowledge", "Knowledge"),
+  ("/admin/memories", "memories", "Memories"),
+  ("/admin/tools", "tools", "Tools"),
+  ("/admin/automations", "automations", "Automations"),
+  ("/admin/job-credentials", "credentials", "Job Credentials"),
+  ("/admin/settings", "settings", "Settings"),
+] %}
+{% if user %}
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <a class="sidebar-brand" href="/admin">
+      <span class="brand-mark">SO</span>
+      <span class="sidebar-brand-text">SimplifyOps</span>
+    </a>
+    <nav class="sidebar-nav">
+      {% for path, ic, label in nav_items %}
+      <a href="{{ path }}" class="sidebar-link {{ 'active' if active_page == path else '' }}" title="{{ label }}">
+        {{ icon(ic, "icon") }}
+        <span class="sidebar-label">{{ label }}</span>
+      </a>
+      {% endfor %}
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user" title="{{ user.email }}">
+        <span class="sidebar-label">{{ user.email }}</span>
+      </div>
+      <form action="/auth/logout" method="post" style="margin:0">
+        <button class="sidebar-link" type="submit" title="Logout">
+          {{ icon("logout", "icon") }}
+          <span class="sidebar-label">Logout</span>
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="app-main">
+    <header class="topbar">
+      <button class="topbar-toggle" id="sidebarToggle" aria-label="Toggle menu">
+        {{ icon("menu", "icon") }}
+      </button>
+      <span class="topbar-title">{% block page_title %}{{ self.title() }}{% endblock %}</span>
+    </header>
+    <main class="page-shell">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+<script>
+  document.getElementById('sidebarToggle')?.addEventListener('click', () => {
+    document.getElementById('sidebar').classList.toggle('open');
+  });
+</script>
+{% else %}
+<main class="page-shell">
+  {% block content_public %}{% endblock %}
+</main>
+{% endif %}
+</body>
+</html>

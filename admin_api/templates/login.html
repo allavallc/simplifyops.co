@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign in — SimplifyOps Admin</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <main class="page-shell" style="display:flex;align-items:center;justify-content:center;min-height:80vh">
+    <section class="card" style="max-width:400px;width:100%">
+      <h1>SimplifyOps Admin</h1>
+      {% if error %}
+      <p style="color:var(--danger)">{{ error }}</p>
+      {% endif %}
+      <div class="actions">
+        <a class="button primary" href="/auth/login">Sign in with Google</a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

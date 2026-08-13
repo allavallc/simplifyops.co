@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<section class="page-intro card">
+  <p class="eyebrow">Admin</p>
+  <div class="page-intro-row">
+    <div>
+      <h1>Dashboard</h1>
+      <p class="lede">Manage people, review inbox, and monitor activity.</p>
+    </div>
+  </div>
+</section>
+<section class="card">
+  <div class="actions compact">
+    <a class="button secondary" href="/admin/people">People</a>
+    <a class="button secondary" href="/admin/people/new">Add person</a>
+    <a class="button secondary" href="/admin/inbox">Inbox {% if pending_count %}({{ pending_count }}){% endif %}</a>
+    <a class="button secondary" href="/admin/activity">Activity Log</a>
+  </div>
+</section>
+{% endblock %}

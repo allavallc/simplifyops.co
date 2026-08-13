@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Inbox — James</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+    <style>
+      .inbox-filters {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+      .filter-btn {
+        padding: 6px 16px;
+        border-radius: 20px;
+        border: 1.5px solid #d0d4e0;
+        background: #fff;
+        cursor: pointer;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #444;
+        transition: all 0.15s;
+      }
+      .filter-btn.active {
+        background: #275efe;
+        border-color: #275efe;
+        color: #fff;
+      }
+      .inbox-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .inbox-table th {
+        text-align: left;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #888;
+        padding: 0 12px 10px;
+        border-bottom: 1px solid #e8eaf0;
+      }
+      .inbox-table td {
+        padding: 14px 12px;
+        border-bottom: 1px solid #f0f2f7;
+        vertical-align: top;
+        font-size: 0.9rem;
+      }
+      .inbox-table tr:last-child td { border-bottom: none; }
+      .inbox-table tr:hover td { background: #f7f9ff; }
+      .message-preview {
+        color: #555;
+        max-width: 340px;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .sender-name { font-weight: 600; }
+      .sender-id { font-size: 0.78rem; color: #999; }
+      .channel-pill {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        background: #f0f2f7;
+        color: #555;
+      }
+      .status-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+      .status-badge.pending  { background: #fff8e1; color: #b45309; }
+      .status-badge.approved { background: #e6f4ea; color: #1e7e34; }
+      .status-badge.rejected { background: #fce4ec; color: #c62828; }
+      .status-badge.ignored  { background: #f0f0f0; color: #888; }
+      .row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+      .empty-state { text-align: center; padding: 48px 0; color: #aaa; }
+    </style>
+  </head>
+  <body data-page="inbox">
+    <header id="site-header"></header>
+    <main class="page-shell">
+
+      <section class="page-intro card">
+        <p class="eyebrow">Admin › Inbox</p>
+        <div class="page-intro-row">
+          <div>
+            <h1>Contact Requests</h1>
+            <p class="lede">People who tried to reach James and are waiting for approval.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="inbox-filters">
+          <button class="filter-btn active" data-filter="pending">Pending</button>
+          <button class="filter-btn" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="approved">Approved</button>
+          <button class="filter-btn" data-filter="rejected">Rejected</button>
+          <button class="filter-btn" data-filter="ignored">Ignored</button>
+        </div>
+        <div id="inbox-content">
+          <p>Loading…</p>
+        </div>
+      </section>
+
+    </main>
+    <footer id="site-footer"></footer>
+  </body>
+</html>

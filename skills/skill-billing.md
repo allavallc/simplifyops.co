@@ -9,11 +9,11 @@ triggers:
 
 # Billing Skill
 
-Handles invoicing for SimplifyOps. Full implementation lives in `billing/`.
+Canonical billing workflow lives in `billing/billing-skill.md`.
 
 ## Quick Reference
 
-**Generate invoice:**
+**Generate invoice only:**
 ```bash
 python3 billing/generate_invoice.py <ClientName> <Month> [Year]
 ```
@@ -28,15 +28,15 @@ python3 billing/generate_invoice.py <ClientName> <Month> [Year] --send
 python3 billing/generate_invoice.py <ClientName> <Month> [Year] --send --direct
 ```
 
-**Update sheet after invoicing (mandatory):**
+**Update sheet after invoicing:**
 ```bash
 python3 billing/finalize_invoice.py <ClientName> <Month>
 ```
 
 ## Rules
-- Always run `finalize_invoice.py` immediately after generating — marks rows as invoiced and stamps the invoice number. Skipping causes double-billing next month.
-- Duplicate send protection is automatic — `invoices/sent_log.json` blocks re-sending the same invoice number.
-- Client details, rates, and email config live in `billing/clients.yaml` (gitignored — not in repo).
+- Run `finalize_invoice.py` immediately after generating.
+- Do not send the same invoice number twice.
+- Client details, rates, and email config live in `billing/clients.yaml` (gitignored).
 
 ## Full Docs
-See `billing/billing-skill.md` for complete workflow, email format, and signature rules.
+See `billing/billing-skill.md` for the canonical workflow, email format, and signature rules.

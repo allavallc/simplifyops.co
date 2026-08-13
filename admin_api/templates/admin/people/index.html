@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}People{% endblock %}
+{% block content %}
+<section class="page-intro card">
+  <p class="eyebrow">People</p>
+  <div class="page-intro-row">
+    <div><h1>People</h1><p class="lede">Everyone allowed to interact with the agent.</p></div>
+    <div class="actions compact">
+      {% if show_deleted %}
+      <a class="button secondary" href="/admin/people">Hide deleted</a>
+      {% else %}
+      <a class="button secondary" href="/admin/people?show_deleted=1">Show deleted</a>
+      {% endif %}
+      <a class="button primary" href="/admin/people/new">Add person</a>
+    </div>
+  </div>
+</section>
+<section class="card">
+  {% if people %}
+  <table class="data-table">
+    <thead>
+      <tr><th>ID</th><th>Name</th><th>Email</th><th>Telegram</th><th>Authority</th><th>Can converse</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for p in people %}
+      <tr {{ 'class=is-deleted' | safe if p.deleted_at else '' }}>
+        <td class="mono">{{ p.id }}</td>
+        <td>{{ p.person_name or '—' }}{% if p.deleted_at %} <span class="status-pill blocked">deleted</span>{% endif %}</td>
+        <td>{{ p.person_email }}</td>
+        <td>{{ p.telegram_id or '—' }}</td>
+        <td><span class="status-pill {{ p.authority }}">{{ p.authority }}</span></td>
+        <td>{{ 'Yes' if p.can_converse else '<span class="status-pill blocked">No</span>' | safe }}</td>
+        <td><span class="status-pill {{ p.status }}">{{ p.status }}</span></td>
+        <td>
+          <a class="button secondary tiny" href="/admin/people/{{ p.person_email }}">View</a>
+          {% if p.deleted_at %}
+          <form method="post" action="/admin/people/{{ p.person_email }}/restore" style="display:inline">
+            <button class="button secondary tiny" type="submit">Restore</button>
+          </form>
+          {% else %}
+          <a class="button secondary tiny" href="/admin/people/{{ p.person_email }}/edit">Edit</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty-state">No people yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

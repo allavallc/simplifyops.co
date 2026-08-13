@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Inbox{% endblock %}
+{% block content %}
+<section class="page-intro card">
+  <p class="eyebrow">Inbox</p>
+  <div class="page-intro-row">
+    <div><h1>Inbox</h1><p class="lede">Unknown senders awaiting a decision.</p></div>
+  </div>
+  <div class="filter-row">
+    <a class="filter-btn {{ 'active' if current_filter == 'pending' }}" href="?status=pending">Pending</a>
+    <a class="filter-btn {{ 'active' if current_filter == 'all' }}" href="?status=all">All</a>
+  </div>
+</section>
+<section class="card">
+  {% if requests %}
+  <table class="data-table">
+    <thead>
+      <tr><th>Request ID</th><th>When</th><th>Channel</th><th>From</th><th>Message</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for r in requests %}
+      <tr>
+        <td class="mono" title="{{ r.request_id }}">{{ (r.request_id[:8] ~ '…') if r.request_id else '—' }}</td>
+        <td class="nowrap">{{ r.created_at.strftime('%Y-%m-%d %H:%M') if r.created_at else '—' }}</td>
+        <td>{{ r.channel }}</td>
+        <td>{{ r.from_name or r.from_id }}</td>
+        <td class="truncate">{{ r.message_preview }}</td>
+        <td><span class="status-pill {{ r.status }}">{{ r.status }}</span></td>
+        <td>
+          {% if r.status in ['pending', 'ignored'] %}
+          <form method="post" action="/admin/inbox/{{ r.id }}/approve" style="display:inline">
+            <button class="button primary tiny" type="submit">Approve</button>
+          </form>
+          <form method="post" action="/admin/inbox/{{ r.id }}/ignore" style="display:inline">
+            <button class="button secondary tiny" type="submit">Ignore</button>
+          </form>
+          <form method="post" action="/admin/inbox/{{ r.id }}/reject" style="display:inline" onsubmit="return confirm('Reject this request?')">
+            <button class="button danger tiny" type="submit">Reject</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty-state">No requests.</p>
+  {% endif %}
+</section>
+{% endblock %}

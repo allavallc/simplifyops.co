@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Tools{% endblock %}
+{% block content %}
+<section class="page-intro card">
+  <p class="eyebrow">Tools</p>
+  <div class="page-intro-row">
+    <div>
+      <h1>Tools</h1>
+      <p class="lede">Hermes toolsets and MCP connectors.</p>
+    </div>
+    <div class="actions compact">
+      <button class="button secondary" disabled title="Backend not yet implemented">Check MCP health</button>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>MCP servers</h2>
+  <table class="data-table">
+    <thead><tr><th>ID</th><th>Server</th><th>Services</th><th>Enabled</th><th>Health</th></tr></thead>
+    <tbody>
+      {% if mcp_servers %}
+        {% for s in mcp_servers %}
+        <tr>
+          <td class="mono">{{ s.id or s.name }}</td>
+          <td>{{ s.name }}</td>
+          <td>{{ s.services }}</td>
+          <td><span class="status-pill {{ 'allowed' if s.enabled else 'blocked' }}">{{ 'Enabled' if s.enabled else 'Disabled' }}</span></td>
+          <td>{{ s.health or 'Not checked' }}</td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr><td colspan="5" class="empty-state">No MCP servers found.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+  <p class="field-note" style="margin-top:12px">Tool toggles and health checks — backend not yet implemented.</p>
+</section>
+{% endblock %}

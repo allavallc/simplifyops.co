@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Companies{% endblock %}
+{% block content %}
+<section class="page-intro card">
+  <p class="eyebrow">Companies</p>
+  <div class="page-intro-row">
+    <div>
+      <h1>Companies</h1>
+      <p class="lede">Company hierarchy, archived state, and scoped access.</p>
+    </div>
+    <div class="actions compact">
+      <button class="button primary" disabled title="Backend not yet implemented">Add company</button>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <table class="data-table">
+    <thead><tr><th>ID</th><th>Name</th><th>Parent</th><th>Root</th><th>Status</th><th>Website</th><th></th></tr></thead>
+    <tbody>
+      {% if companies %}
+        {% for c in companies %}
+        <tr>
+          <td class="mono">{{ c.id }}</td>
+          <td>{{ c.name }}</td>
+          <td>{{ c.parent or '—' }}</td>
+          <td>{{ 'Yes' if c.is_root else '—' }}</td>
+          <td><span class="status-pill {{ 'allowed' if c.status == 'active' else 'blocked' }}">{{ c.status }}</span></td>
+          <td>{{ c.website or '—' }}</td>
+          <td><button class="button secondary tiny" disabled>View</button></td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr><td colspan="7" class="empty-state">No companies yet. Backend not yet implemented.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

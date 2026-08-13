@@ -1,4 +1,4 @@
-# Hana Unified Ingress (FastAPI)
+# SimplifyOps Unified Ingress (FastAPI)
 
 Single entry point for all inbound channels.
 
@@ -10,7 +10,7 @@ Single entry point for all inbound channels.
 - `telegram` (webhook relay mode)
 
 ## Compatibility endpoint
-- `POST /hana/respond` (maps to `source=millis`)
+- `POST /respond` (maps to `source=millis`)
 
 ## Env
 ```bash
@@ -24,7 +24,7 @@ HERMES_TIMEOUT_SECONDS=2.3
 
 ## Run
 ```bash
-cd /home/pi/simplifyops/hana-bridge-millis
+cd /home/pi/simplifyops/bridge-millis
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt

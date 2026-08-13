@@ -126,7 +126,7 @@ The gateway is a Python script that connects Telegram to Hermes. It runs as a sy
 1. Polls Telegram for new messages (long-polling, 30s timeout)
 2. Checks the sender's Telegram user ID against a whitelist
 3. If approved: calls Hermes via subprocess and sends the reply back
-4. If not approved: silently drops the message (no reply, no acknowledgment)
+4. If not approved: queues the message in the inbox for admin review and sends no reply to the sender
 
 **Whitelist:** `/home/pi/simplifyops/gateway/whitelist/whitelist.md`
 One Telegram user ID per line. Lines starting with `#` are ignored. The whitelist is reloaded on every poll loop — no restart needed to add/remove users.

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Knowledge{% endblock %}
+{% block content %}
+<section class="page-intro card">
+  <p class="eyebrow">Knowledge</p>
+  <div class="page-intro-row">
+    <div>
+      <h1>Knowledge</h1>
+      <p class="lede">Curated protocol and operational documents the agent can reference.</p>
+    </div>
+    <div class="actions compact">
+      <button class="button primary" disabled title="Backend not yet implemented">Add document</button>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <table class="data-table">
+    <thead><tr><th>ID</th><th>Title</th><th>Category</th><th>Source</th><th>Min authority</th><th>Updated</th><th></th></tr></thead>
+    <tbody>
+      {% if documents %}
+        {% for d in documents %}
+        <tr>
+          <td class="mono">{{ d.id }}</td>
+          <td>{{ d.title }}</td>
+          <td>{{ d.category }}</td>
+          <td>{{ d.source_type }}</td>
+          <td>{{ d.min_authority }}</td>
+          <td>{{ d.updated_at }}</td>
+          <td><button class="button secondary tiny" disabled>View</button></td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr><td colspan="7" class="empty-state">No knowledge documents yet. Backend not yet implemented.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

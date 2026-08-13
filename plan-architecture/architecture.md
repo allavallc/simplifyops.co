@@ -19,9 +19,9 @@ Automated weekly blog system with a persistent AI CEO that:
   - `source=millis`
   - `source=telegram`
 - Telegram webhook target: `/messages?source=telegram`
-- Millis compatibility endpoint retained: `POST /hana/respond` (for transition only)
-- Bridge service: `hana-bridge-millis/app/main.py`
-- Local backend mock for validation: `hana-bridge-millis/app/mock_hermes.py`
+- Millis compatibility endpoint retained: `POST /respond` (for transition only)
+- Bridge service: `bridge-millis/app/main.py`
+- Local backend mock for validation: `bridge-millis/app/mock_hermes.py`
 
 ## Robotics Control Architecture (current decision)
 

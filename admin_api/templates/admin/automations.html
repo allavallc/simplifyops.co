@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Automations{% endblock %}
+{% block content %}
+<section class="page-intro card">
+  <p class="eyebrow">Automations</p>
+  <div class="page-intro-row">
+    <div>
+      <h1>Automations</h1>
+      <p class="lede">Scheduled and run-once jobs with notification rules.</p>
+    </div>
+    <div class="actions compact">
+      <button class="button primary" disabled title="Backend not yet implemented">New automation</button>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <table class="data-table">
+    <thead><tr><th>ID</th><th>Name</th><th>Schedule</th><th>State</th><th>Last run</th><th>Owner</th><th></th></tr></thead>
+    <tbody>
+      {% if automations %}
+        {% for a in automations %}
+        <tr>
+          <td class="mono">{{ a.id }}</td>
+          <td>{{ a.name }}</td>
+          <td>{{ a.schedule }}</td>
+          <td><span class="status-pill {{ 'allowed' if a.state == 'active' else 'blocked' }}">{{ a.state }}</span></td>
+          <td>{{ a.last_run or '—' }}</td>
+          <td>{{ a.owner or '—' }}</td>
+          <td><button class="button secondary tiny" disabled>View</button></td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr><td colspan="7" class="empty-state">No automations yet. Backend not yet implemented.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

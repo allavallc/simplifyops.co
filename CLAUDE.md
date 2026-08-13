@@ -2,10 +2,20 @@
 
 ## WORKING STYLE (READ FIRST)
 
-### Permanent Fixes Over Quick Fixes
-- **Always distinguish** between a temporary/quick fix and a permanent fix
-- If proposing a quick fix, explicitly say "This is a temporary fix" and explain the permanent alternative
-- Default to permanent fixes (config files, environment variables, config files) over runtime commands that get wiped on restart
+### Read the Graph Report First
+- **Before coding, bugfixing, or proposing architecture changes:** run `graphify update .` and read `graphify-out/GRAPH_REPORT.md`
+- The graph is the primary map of the codebase — use it before reading raw files or running grep searches
+- After modifying code, run `graphify update .` to keep it current
+
+### No Architecture Choices Without Asking
+- **Never make an architecture decision unilaterally** — this includes implementation approach, service boundaries, data model shape, technology selection, and anything that affects long-term system design
+- If there is more than one reasonable way to implement something, stop and ask before choosing
+- "Simplest path" is not a reason to pick an approach — ask what the right shape is
+
+### No Short-Term Fixes
+- **Never implement a workaround "just to get something working"** — if the right architecture requires more work, do it right or don't do it yet
+- If something can't be done properly right now, say so explicitly and explain what the proper approach requires
+- Temporary scaffolding that will need to be ripped out later is not acceptable — it creates debt and bad behavior that is harder to debug than no implementation at all
 
 ### Minimal Code
 - Write the **minimum code required** to solve the problem
@@ -13,11 +23,66 @@
 - Do not create helpers, utilities, or abstractions unless absolutely necessary
 - If a framework or tool provides a built-in solution, use it instead of writing custom code
 
+### James is off-limits
+
+**Never send messages to James directly.** Do not call `POST /messages` or any admin API endpoint to inject messages, do not message the Telegram bot, and do not simulate user messages via any API or script. All interaction with James goes through Anthony. Injecting messages — even for testing — burns through session limits, corrupts task context, and produces confusing replies mid-task.
+
+### Stories First
+- **All work requires a story in `product/stories/` before implementation starts**
+- Each story file must have a number in the title: `story-N-<title>.md`
+- Write the story, present the plan, wait for approval before coding
+- Stories are permanent — do not reuse numbers
+
 ### Explain Before Acting
 - **Always tell the user what you're going to do BEFORE doing it**
 - Explain what each command does and why
 - For non-trivial changes, ask "Want me to proceed?"
 - Never run commands silently or make changes without explanation
+
+### MCP Work Requires Guidance
+- **Do not build, configure, authorize, or modify MCP servers/connectors without explicit guidance from Anthony (who consults the other LLM).** High mistake potential.
+- The third-party `@dguido/google-workspace-mcp` self-manages OAuth and bypasses app governance/audit — this conflicts with the brain-whitelabel's repo-owned MCP model. Any MCP decision is an architecture decision.
+
+---
+
+## CURRENT SYSTEM STATE (2026-08-11)
+
+James (Hermes agent) is **functional** — `gpt-5.5` via `openai-codex`, profile `simplifyops`.
+
+### Services (all active, systemd)
+| Service | Purpose | Port |
+|---|---|---|
+| `simplifyops-admin.service` | FastAPI control plane: `POST /messages`, admin UI, governance, audit, settings | 3000 |
+| `simplifyops-gateway.service` | Telegram adapter + DurableWorkflowWorker | 3001 (internal) |
+| `simplifyops-agent-runtime.service` | Hermes gateway run + API server | 8642 |
+| `hindsight.service` | Memory (Hindsight) | 8888 |
+| `people-whitelist.service` | Node.js — **DISABLED**, replaced by FastAPI admin_api | — |
+
+### Message flow
+Telegram → `gateway/gateway.py` adapter → `POST http://127.0.0.1:3000/messages` → governance (`person_identities`→`people`) → `work_items(ready)` → DurableWorkflowWorker (concurrency=1) → session-cap check/rotate → `POST http://127.0.0.1:8642/api/sessions/{id}/chat` → `reply_ready` → Telegram send → `completed`. Runtime/timeout failures retry ≤3 → `failed_needs_review` + Telegram alert.
+
+### Where things live
+- FastAPI control plane: `admin_api/` (main.py, routes/, templates/, static/, schema.sql)
+- Durable worker + Telegram adapter: `gateway/gateway.py`; gateway tables: `gateway/sql/schema.sql`
+- Hermes config (env-owned, gitignored): `/home/pi/.hermes/profiles/simplifyops/config.yaml`
+- Secrets: `/home/pi/.config/relay.env` (admin+gateway), `/home/pi/.config/simplifyops-runtime.env` (runtime, root-owned)
+- Canonical architecture: `plan/current-architecture.md`. Stories: `product/stories/`.
+
+### Database (`whitelist_app`, unix socket `/var/run/postgresql`)
+`people` (+authority/can_converse/can_influence/status), `person_identities`, `requests`, `channel_events`, `work_items` (+payload jsonb), `hermes_session_mappings` (+logical_session_id/rotation_reason), `admin_settings` (session_message_cap default 100), `tool_contexts`, `contact_requests`, `audit_log`, `google_tokens`.
+
+### Settings page (`/admin/settings`) — working backends
+Health (Admin API/Soul/Memory URL/Postgres live status), Provider+Model (writes config.yaml → restart runtime → clear sessions), Session Health (cap → admin_settings). Other sections are UI-only.
+
+### Standard fixes
+```bash
+sudo systemctl restart simplifyops-admin.service
+sudo systemctl restart simplifyops-gateway.service
+sudo systemctl restart simplifyops-agent-runtime.service   # API reconnects ~15s
+# stuck 'processing' items after a crash:
+psql "postgresql:///whitelist_app?host=/var/run/postgresql" -c "UPDATE work_items SET status='ready', locked_until=NULL WHERE status='processing' AND locked_until<now();"
+```
+NEVER delete/mask/disable service files.
 
 ---
 
@@ -73,10 +138,21 @@ simplifyops.co/
 │   ├── billing-skill.md        # Full billing workflow docs
 │   ├── clients-example.yaml    # Public example config (committed)
 │   └── clients.yaml            # GITIGNORED — all secrets live here
+├── gateway/
+│   ├── gateway.py              # Channel-agnostic Telegram→Hermes bridge
+│   ├── session_history.json    # GITIGNORED — per-user conversation history
+│   └── whitelist/
+│       └── (whitelist.md removed — governance now in people DB)
+├── people-whitelist/           # Node/Express admin app for contact/whitelist mgmt
+│   ├── server.js               # Express server (port 3000)
+│   ├── src/                    # Frontend and route handlers
+│   └── sql/                    # DB schema
 ├── skills/
 │   └── skill-billing.md        # Quick-ref skill pointing to billing/
 ├── souls/
 │   └── james-bott.md           # CEO persona definition
+├── plan/
+│   └── persistent-mcp-setup.md # ATTEMPTED + FAILED — HTTP MCP transport docs
 ├── invoices/                   # GITIGNORED — generated PDFs
 └── graphify-out/               # GITIGNORED — knowledge graph outputs
 ```
@@ -142,6 +218,26 @@ Use one of these privacy-safe approaches:
 ```
 
 The form_id/configuration lives in the external service, not in this repo.
+
+## Gateway (James ↔ Telegram)
+
+- **Script:** `gateway/gateway.py` — systemd service `simplifyops-gateway.service`
+- **Architecture:** channel-agnostic router; `handle_message()` is the central entry point
+- **Telegram adapter:** long-polls Telegram, calls `handle_message()` per message
+- **Internal HTTP server:** listens on `127.0.0.1:3001` at `/internal/reply` — receives approval callbacks from the people-whitelist app after an admin approves an unknown sender
+- **Governance:** `people` table in `whitelist_app` DB — `telegram_id`, `can_converse`, `authority`, `status`
+- **Unknown senders:** queued to `http://127.0.0.1:3000/api/inbox` (people-whitelist app); sender UX pending decision (currently no reply sent to unknown senders)
+- **Session history:** last 25 exchanges per user in `gateway/session_history.json`; prepended to each Hermes prompt
+- **Hermes call:** `hermes -p simplifyops -z "<history + message>"`
+
+## People-Whitelist App
+
+- **Location:** `people-whitelist/` — Node.js/Express
+- **Port:** 3000 (local) — also accessible on Tailscale at `http://100.76.27.28:3000/`
+- **Service:** `people-whitelist.service`
+- **Purpose:** admin UI for managing contact requests from unknown senders; admin approvals trigger a POST to gateway's `/internal/reply`
+- **Auth:** Google OAuth (admin-only)
+- **DB:** Postgres — `people` table with optional Telegram ID, phone, etc.
 
 ## Tech Stack
 

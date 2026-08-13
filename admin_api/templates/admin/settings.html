@@ -1,0 +1,369 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+
+<section class="page-intro card">
+  <p class="eyebrow">Admin</p>
+  <div class="page-intro-row">
+    <div>
+      <h1>Settings</h1>
+      <p class="lede">Runtime, provider, channel, workspace, and operational configuration.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Health ────────────────────────────────────────────────────────── -->
+<section class="card">
+  <h2>Overall status</h2>
+  <p class="section-note">Live status of all system components.</p>
+  <table class="data-table">
+    <thead>
+      <tr><th>Component</th><th>Detail</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      {% for item in health %}
+      <tr>
+        <td>{{ item.name }}</td>
+        <td class="mono" style="font-size:0.82rem;color:var(--muted)">{{ item.detail }}</td>
+        <td>
+          <span class="status-pill {{ 'allowed' if item.ok else 'blocked' }}">
+            {{ 'Live' if item.ok else 'Failing' }}
+          </span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<!-- ── Runtime Controls ───────────────────────────────────────────────── -->
+<section class="card">
+  <h2>Runtime controls</h2>
+  <p class="section-note">Runtime restart/reload and diagnostics. Restart is required after provider, model, or identity-file changes.</p>
+  <div class="actions">
+    <button class="button secondary" disabled title="Backend not yet implemented">Restart runtime</button>
+    <button class="button secondary" disabled title="Backend not yet implemented">Enable prompt diagnostics</button>
+  </div>
+  <p class="field-note" style="margin-top:12px">Prompt diagnostics log counts and timing only — never raw prompt text, user text, or tokens.</p>
+</section>
+
+<!-- ── Provider And Model ─────────────────────────────────────────────── -->
+<section class="card">
+  <h2>Provider and model</h2>
+  <p class="section-note">Active provider and model for the agent runtime. Changes require a restart. Provider credentials show presence only.</p>
+  <form id="runtime-form">
+  <div class="form-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+    <label>
+      <span>Active provider</span>
+      <input name="provider" value="{{ runtime.provider or '' }}" placeholder="e.g. openai-codex" />
+    </label>
+    <label>
+      <span>Active model</span>
+      <input name="model" value="{{ runtime.model or '' }}" placeholder="e.g. gpt-5.4-mini" />
+    </label>
+    <label>
+      <span>Provider credentials</span>
+      <div style="padding:8px 0">
+        <span class="status-pill {{ 'allowed' if runtime.has_credentials else 'blocked' }}">
+          {{ 'Present' if runtime.has_credentials else 'Not set' }}
+        </span>
+      </div>
+    </label>
+  </div>
+  <div class="actions" style="margin-top:16px">
+    <button type="submit" class="button primary">Save and restart runtime</button>
+    <span class="field-note">Writes to environment-owned config.yaml, restarts the runtime, and clears session mappings.</span>
+  </div>
+  </form>
+  <div id="runtime-status" style="margin-top:8px"></div>
+  <script>
+  document.getElementById('runtime-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const status = document.getElementById('runtime-status');
+    status.textContent = 'Saving and restarting…';
+    const form = e.target;
+    const payload = {
+      provider: form.provider.value.trim() || null,
+      model: form.model.value.trim() || null,
+    };
+    const r = await fetch('/api/admin/settings/runtime', {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload),
+    });
+    const d = await r.json();
+    if (r.ok) {
+      status.textContent = d.changed ? '✓ Saved and runtime restarted. New sessions will use the updated config.' : '✓ No changes.';
+    } else {
+      status.textContent = '✗ Error: ' + (d.detail || JSON.stringify(d));
+    }
+  });
+  </script>
+</section>
+
+<!-- ── Tool Approvals ────────────────────────────────────────────────── -->
+<section class="card">
+  <h2>Tool approvals</h2>
+  <p class="section-note">How the agent handles running tools. Changing this restarts the runtime (brief session reconnect); conversation continuity is preserved.</p>
+  <form id="approvals-form">
+  <div class="form-grid">
+    <label>
+      <span>Approvals mode</span>
+      <select name="approvals_mode" id="approvals-mode-select">
+        {% set cur = runtime.approvals_mode %}
+        <option value="smart"  {{ 'selected' if cur == 'smart'  else '' }}>smart — auto-run safe tools, pause only for risky ones</option>
+        <option value="off"    {{ 'selected' if cur == 'off'    else '' }}>off — never pause, run every tool immediately</option>
+        <option value="manual" {{ 'selected' if cur == 'manual' else '' }}>manual — always pause for human approval</option>
+      </select>
+    </label>
+  </div>
+  <p id="approvals-manual-warning" class="field-note" style="color:var(--danger,#b42318);display:none;margin-top:8px">
+    ⚠️ <strong>manual</strong> pauses every tool call waiting for an approval. Until an approval surface exists, tool calls will stall until they time out.
+  </p>
+  <div class="actions" style="margin-top:16px">
+    <button type="submit" class="button primary">Save &amp; restart runtime</button>
+  </div>
+  </form>
+  <div id="approvals-status" style="margin-top:8px"></div>
+  <script>
+  (function() {
+    const sel = document.getElementById('approvals-mode-select');
+    const warn = document.getElementById('approvals-manual-warning');
+    const toggleWarn = () => { warn.style.display = sel.value === 'manual' ? 'block' : 'none'; };
+    sel.addEventListener('change', toggleWarn);
+    toggleWarn();
+    document.getElementById('approvals-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = document.getElementById('approvals-status');
+      const mode = sel.value;
+      if (!confirm('Set tool approvals to "' + mode + '" and restart the runtime?')) return;
+      status.textContent = 'Saving and restarting runtime…';
+      const r = await fetch('/api/admin/settings/approvals', {
+        method: 'PATCH',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({mode: mode}),
+      });
+      const d = await r.json();
+      status.textContent = r.ok
+        ? (d.changed ? '✓ Saved. Mode is now ' + d.mode + ' (runtime restarted).' : '✓ No change — already ' + d.mode + '.')
+        : '✗ Error: ' + (d.detail || JSON.stringify(d));
+    });
+  })();
+  </script>
+</section>
+
+<!-- ── Session Health ─────────────────────────────────────────────────── -->
+<section class="card">
+  <h2>Session health</h2>
+  <p class="section-note">Controls physical session rotation to prevent prompt bloat. Rotation preserves logical conversation continuity. Does not expose Hermes compression internals.</p>
+  <form id="session-health-form">
+  <div class="form-grid">
+    <label>
+      <span>Default session message cap</span>
+      <input name="session_message_cap" type="number" min="1"
+             value="{{ settings.session_message_cap or 100 }}" />
+    </label>
+  </div>
+  <div class="actions" style="margin-top:16px">
+    <button type="submit" class="button primary">Save</button>
+    <span class="field-note">Takes effect on the next session rotation. Does not interrupt active sessions.</span>
+  </div>
+  </form>
+  <div id="session-health-status" style="margin-top:8px"></div>
+  <script>
+  document.getElementById('session-health-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const status = document.getElementById('session-health-status');
+    const cap = parseInt(e.target.session_message_cap.value);
+    const r = await fetch('/api/admin/settings/session-health', {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({session_message_cap: cap}),
+    });
+    const d = await r.json();
+    status.textContent = r.ok ? '✓ Saved. Cap is now ' + d.session_message_cap + ' messages.' : '✗ Error: ' + (d.detail || JSON.stringify(d));
+  });
+  </script>
+</section>
+
+<!-- ── Organization ──────────────────────────────────────────────────── -->
+<section class="card">
+  <h2>Organization</h2>
+  <p class="section-note">Org-wide defaults. The default timezone is inherited by any person who has no timezone set on their People record. Applied live — no runtime restart.</p>
+  <form id="org-default-tz-form">
+  <div class="form-grid">
+    <label>
+      <span>Default timezone</span>
+      <input name="default_timezone" placeholder="America/New_York"
+             value="{{ settings.default_timezone or 'America/New_York' }}" />
+      <small class="field-note">IANA name (e.g. America/New_York = EST/EDT).</small>
+    </label>
+  </div>
+  <div class="actions" style="margin-top:16px">
+    <button type="submit" class="button primary">Save</button>
+  </div>
+  </form>
+  <div id="org-default-tz-status" style="margin-top:8px"></div>
+  <script>
+  document.getElementById('org-default-tz-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const status = document.getElementById('org-default-tz-status');
+    const tz = e.target.default_timezone.value.trim();
+    const r = await fetch('/api/admin/settings/default-timezone', {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({default_timezone: tz}),
+    });
+    const d = await r.json();
+    status.textContent = r.ok ? '✓ Saved. Org default is now ' + d.default_timezone + '.' : '✗ Error: ' + (d.detail || JSON.stringify(d));
+  });
+  </script>
+</section>
+
+<!-- ── File Locations ────────────────────────────────────────────────── -->
+<section class="card">
+  <h2>File locations</h2>
+  <p class="section-note">Presence and status of key runtime files. No file contents or secrets are shown.</p>
+  <div class="detail-grid">
+    <div class="detail-card">
+      <span>Runtime home</span>
+      <strong>{{ files.runtime_home_status or '—' }}</strong>
+    </div>
+    <div class="detail-card">
+      <span>Runtime config (config.yaml)</span>
+      <strong>{{ files.runtime_config_status or '—' }}</strong>
+    </div>
+    <div class="detail-card">
+      <span>Identity file (SOUL.md)</span>
+      <strong>{{ files.soul_file_status or '—' }}</strong>
+    </div>
+    <div class="detail-card">
+      <span>Tracked config template</span>
+      <strong>{{ files.base_config_status or '—' }}</strong>
+    </div>
+  </div>
+  <div class="actions" style="margin-top:16px">
+    <button class="button secondary" disabled title="Super admin only — backend not yet implemented">Upload identity file</button>
+    <span class="field-note">Super admin only. Runtime restart required after upload before SOUL.md updates.</span>
+  </div>
+</section>
+
+<!-- ── Channels ───────────────────────────────────────────────────────── -->
+<section class="card">
+  <h2>Channels</h2>
+  <p class="section-note">Per-channel enablement, identifiers, and session cap overrides.</p>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Channel</th>
+        <th>Status</th>
+        <th>Public identifier</th>
+        <th>Session cap</th>
+        <th>Secret presence</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Telegram</td>
+        <td><span class="status-pill allowed">Active</span></td>
+        <td>{{ channels.telegram.bot_username or '—' }}</td>
+        <td><input type="number" min="1" placeholder="Global default" disabled style="width:110px" /></td>
+        <td>{{ 'Present' if channels.telegram.has_token else 'Not set' }}</td>
+      </tr>
+      <tr>
+        <td>Email / Gmail</td>
+        <td><span class="status-pill blocked">Not configured</span></td>
+        <td>—</td>
+        <td><input type="number" min="1" placeholder="200" disabled style="width:110px" /></td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td>Phone</td>
+        <td><span class="status-pill blocked">Not configured</span></td>
+        <td>—</td>
+        <td><input type="number" min="1" placeholder="50" disabled style="width:110px" /></td>
+        <td>—</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="actions" style="margin-top:16px">
+    <button class="button secondary" disabled title="Backend not yet implemented">Save channel settings</button>
+  </div>
+</section>
+
+<!-- ── Workspace Access ───────────────────────────────────────────────── -->
+<section class="card">
+  <h2>Workspace access</h2>
+  <p class="section-note">Shared Google Workspace OAuth connection. One connection powers Calendar, Gmail, Drive, Sheets, and other tools. High-blast-radius — disconnect requires confirmation.</p>
+  <div class="detail-grid">
+    <div class="detail-card">
+      <span>Connection status</span>
+      <strong>
+        {% if workspace.connected %}
+          <span class="status-pill allowed">Connected</span>
+        {% else %}
+          <span class="status-pill blocked">Not connected</span>
+        {% endif %}
+      </strong>
+    </div>
+    {% if workspace.connected %}
+    <div class="detail-card">
+      <span>Scopes</span>
+      <strong>{{ workspace.scopes | join(', ') if workspace.scopes else '—' }}</strong>
+    </div>
+    <div class="detail-card">
+      <span>Token expires</span>
+      <strong>{{ workspace.token_expiry or '—' }}</strong>
+    </div>
+    {% endif %}
+  </div>
+  <div class="actions" style="margin-top:16px">
+    {% if workspace.connected %}
+      <a class="button secondary" href="/integrations/google/connect">Reconnect</a>
+      <button class="button danger" disabled title="Backend not yet implemented — requires confirmation">Disconnect</button>
+      <button class="button secondary" disabled title="Backend not yet implemented">Run calendar smoke test</button>
+    {% else %}
+      <a class="button primary" href="/integrations/google/connect">Connect Google Workspace</a>
+    {% endif %}
+  </div>
+</section>
+
+<!-- ── Admin Contact ─────────────────────────────────────────────────── -->
+<section class="card">
+  <h2>Admin contact</h2>
+  <p class="section-note">Primary and optional secondary operational contacts for system notifications. Selected from active admin or super-admin people.</p>
+  <div class="form-grid">
+    <label>
+      <span>Primary contact</span>
+      <input value="{{ admin_contact.primary or '—' }}" disabled />
+    </label>
+    <label>
+      <span>Secondary contact</span>
+      <input value="{{ admin_contact.secondary or 'None' }}" disabled />
+    </label>
+  </div>
+  <div class="actions" style="margin-top:16px">
+    <button class="button secondary" disabled title="Backend not yet implemented">Save</button>
+  </div>
+</section>
+
+<!-- ── Tools Summary ─────────────────────────────────────────────────── -->
+<section class="card">
+  <h2>Tools</h2>
+  <p class="section-note">Hermes toolsets and MCP connectors. Full tool editing is on the Tools page.</p>
+  <div class="detail-grid">
+    <div class="detail-card">
+      <span>MCP health</span>
+      <strong>{{ tools.mcp_health or 'Not checked' }}</strong>
+    </div>
+    <div class="detail-card">
+      <span>Active toolsets</span>
+      <strong>{{ tools.active_count or '—' }}</strong>
+    </div>
+  </div>
+  <div class="actions" style="margin-top:16px">
+    <a class="button secondary" href="/admin/tools">Go to Tools</a>
+  </div>
+</section>
+
+{% endblock %}

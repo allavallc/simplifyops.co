@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Activity Log{% endblock %}
+{% block content %}
+<section class="page-intro card">
+  <p class="eyebrow">Agent</p>
+  <div class="page-intro-row">
+    <div><h1>Activity Log</h1><p class="lede">Recent requests processed by the agent.</p></div>
+  </div>
+  <div class="filter-row">
+    {% for s in ['all','completed','processing','failed_retryable','failed_needs_review'] %}
+    <a class="filter-btn {{ 'active' if current_filter == s }}" href="?status={{ s }}">{{ s.replace('_',' ').title() }}</a>
+    {% endfor %}
+  </div>
+</section>
+<section class="card">
+  {% if items %}
+  <table class="data-table">
+    <thead>
+      <tr><th>Request ID</th><th>When</th><th>From</th><th>Message</th><th>Status</th><th>Attempts</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for i in items %}
+      <tr>
+        <td class="mono"><a href="/admin/activity/{{ i.id }}" title="{{ i.request_id }}">{{ i.request_id[:8] }}…</a></td>
+        <td class="nowrap">{{ i.created_at.strftime('%Y-%m-%d %H:%M') if i.created_at else '—' }}</td>
+        <td class="nowrap">{{ i.from_name or i.from_id }}</td>
+        <td class="truncate">{{ i.message_preview or '—' }}</td>
+        <td><span class="status-pill {{ i.status }}">{{ i.status.replace('_',' ') }}</span></td>
+        <td>{{ i.attempt_count }}</td>
+        <td><a class="button secondary tiny" href="/admin/activity/{{ i.id }}">Detail</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty-state">No activity.</p>
+  {% endif %}
+</section>
+{% endblock %}

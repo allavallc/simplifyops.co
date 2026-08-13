@@ -7,6 +7,18 @@ credentials/
 billing/clients.yaml
 billing/sent_log.json
 
+# Per-user conversation history — PII: contains messages and sometimes plaintext
+# credentials the user pasted. NEVER commit (repo is public).
+gateway/session_history.json
+session_history.json
+
+# Loose billing invoice artifacts (client names / financials)
+billing/Invoice*
+billing/invoice*.md
+
+# Node dependencies
+node_modules/
+
 # Generated artifacts
 invoices/
 graphify-out/
@@ -19,3 +31,6 @@ __pycache__/
 
 # Local machine-specific Claude Code settings
 .claude/settings.local.json
+
+# Multi-agent coordination log (local only — never commit; repo is public)
+agent-coordination.md

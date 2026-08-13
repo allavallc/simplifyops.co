@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Request {{ item.id }}{% endblock %}
+{% block content %}
+<section class="page-intro card">
+  <p class="eyebrow">Activity</p>
+  <div class="page-intro-row">
+    <div><h1>Request detail</h1></div>
+    <div class="actions compact"><a class="button secondary" href="/admin/activity">Back</a></div>
+  </div>
+</section>
+<section class="card">
+  <div class="detail-grid">
+    <div class="detail-card"><span>Status</span><strong><span class="status-pill {{ item.status }}">{{ item.status.replace('_',' ') }}</span></strong></div>
+    <div class="detail-card"><span>Channel / Sender</span><strong>{{ item.channel }} / {{ item.from_name or item.from_id }}</strong></div>
+    <div class="detail-card"><span>Attempts</span><strong>{{ item.attempt_count }}</strong></div>
+    <div class="detail-card"><span>Received</span><strong>{{ item.requested_at.strftime('%Y-%m-%d %H:%M:%S') if item.requested_at else '—' }}</strong></div>
+    <div class="detail-card"><span>Updated</span><strong>{{ item.updated_at.strftime('%Y-%m-%d %H:%M:%S') if item.updated_at else '—' }}</strong></div>
+    <div class="detail-card"><span>Request ID</span><strong class="mono">{{ item.request_id }}</strong></div>
+    {% if item.error_summary %}
+    <div class="detail-card full"><span>Error</span><strong class="error-text">{{ item.error_summary }}</strong></div>
+    {% endif %}
+    <div class="detail-card full"><span>Message</span><pre class="content-pre">{{ item.message_text or '—' }}</pre></div>
+    <div class="detail-card full"><span>Reply</span><pre class="content-pre">{{ item.reply_text or '—' }}</pre></div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Memories{% endblock %}
+{% block content %}
+<section class="page-intro card">
+  <p class="eyebrow">Memory</p>
+  <div class="page-intro-row">
+    <div>
+      <h1>Memories</h1>
+      <p class="lede">Inspect and search the agent's Hindsight memory.</p>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <div class="form-grid" style="grid-template-columns: 1fr auto;">
+    <label>
+      <span>Search memories</span>
+      <input placeholder="Search Hindsight…" disabled />
+    </label>
+    <div style="display:flex;align-items:flex-end">
+      <button class="button primary" disabled title="Backend not yet implemented">Search</button>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <table class="data-table">
+    <thead><tr><th>ID</th><th>Memory</th><th>Bank</th><th>Score</th><th>Created</th></tr></thead>
+    <tbody>
+      <tr><td colspan="5" class="empty-state">Memory inspection surface — backend not yet implemented.</td></tr>
+    </tbody>
+  </table>
+</section>
+{% endblock %}

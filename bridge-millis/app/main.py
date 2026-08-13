@@ -9,7 +9,7 @@ from fastapi import FastAPI, Header, HTTPException, Request
 
 load_dotenv()
 
-app = FastAPI(title="Hana Unified Ingress")
+app = FastAPI(title="SimplifyOps Unified Ingress")
 
 HERMES_API_URL = os.getenv("HERMES_API_URL", "http://localhost:3000/chat")
 HERMES_API_KEY = os.getenv("HERMES_API_KEY", "")
@@ -135,8 +135,8 @@ async def messages(
         return {"response": "I’m having trouble reaching my backend right now. Please try again."}
 
 
-@app.post("/hana/respond")
-async def hana_respond_compat(request: Request, x_millis_signature: str | None = Header(default=None)) -> dict[str, str]:
+@app.post("/respond")
+async def respond_compat(request: Request, x_millis_signature: str | None = Header(default=None)) -> dict[str, str]:
     raw = await request.body()
     _verify_hmac_sha256(raw, x_millis_signature, MILLIS_WEBHOOK_SECRET, "missing_millis_signature", "invalid_millis_signature")
     payload = await request.json()
