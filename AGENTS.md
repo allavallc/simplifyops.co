@@ -1,7 +1,9 @@
 ## Working Rules (read first)
 
 1. **James is off-limits.** Never call `POST /messages`, message the Telegram bot, or simulate a user message via any API or script. All interaction with James goes through Anthony. Injected messages burn session limits, corrupt task context, and confuse Anthony mid-task. Not permitted for testing without explicit instruction.
-2. **Stories first.** All implementation work needs a numbered story in `product/stories/story-N-<title>.md` before coding. Write the story, present the plan, wait for approval. Numbers are permanent — never reuse.
+2. **Stories first.** All implementation work needs a numbered story in `product/stories/story-N-<title>.md` before coding. Write the story, present the plan, wait for approval. Numbers are permanent — never reuse. **Lifecycle:** story → plan → approval → implement → **write tests → tests pass** → **`brooks-review` the diff → resolve findings** → **then** commit & push. The brooks-review gate runs *after tests pass and before committing/pushing* (see rule 9); a story is not *done* until it has passed that gate.
+2a. **DO NOT BUILD SERVER-SIDE HTML.** The admin is **API-first**: a Vite+React+TS client-side SPA (`admin-client/`, served static at `/app`) consuming typed JSON `/api/admin/*` endpoints. **Never** add server-rendered pages/Jinja templates for admin UI. New admin surfaces = a JSON API endpoint + a React view in the SPA. The old `/admin` Jinja pages are legacy being retired — do not extend them. (Anthony, emphatic, 2026-08-13/14.)
+2b. **The design guide in `design/` is the master for ALL UI. No deviation, ever.** Every UI change — layout, color, type, spacing, component, copy tone — must conform to `design/` (start at `design/style-guide.md`). You may not improvise, "improve," or reinterpret the design; matching the guide is not optional and there are **no exceptions**. **If anything is unspecified, ambiguous, or appears to conflict — ASK Anthony. Never assume, never fill the gap yourself.** When the guide and the code disagree, the guide wins and you flag it. (Anthony, 2026-08-15.)
 3. **No architecture choices without asking.** Implementation approach, service boundaries, data model, technology selection — if there's more than one reasonable way, stop and ask. "Simplest path" is not a reason.
 4. **No short-term fixes.** No workarounds "just to get something working." Do it right or say what the right approach requires and hold.
 5. **MCP requires guidance.** Do not build/configure/authorize/modify MCP servers without explicit direction from Anthony (who consults the other LLM). High mistake potential. The third-party `@dguido/google-workspace-mcp` self-manages OAuth and bypasses app governance — that conflicts with the repo-owned MCP model.
@@ -14,6 +16,23 @@
    <message>
    ----
    ```
+9. **Code review: brooks-lint (all agents).** This repo ships the **brooks-lint** Agent Skills
+   at `.agents/skills/` (vendor-neutral; MIT). They are **provider-agnostic** — any agent that
+   loads Agent Skills (Codex/James, Claude Code, Cursor, Gemini, etc.) discovers them from that
+   folder via each skill's `description`. **Mandatory review gate (part of rule 2's lifecycle):**
+   every story runs **`brooks-review` on its diff *after* its tests pass and *before* you commit
+   or push.** An unresolved 🔴 **Critical** finding **blocks the commit/push** — fix it or record
+   an explicit justification in the story's Review section; 🟡/🟢 are fixed or justified there too.
+   The review is static (reads code + test files; it does not run tests), which is why tests are
+   written and green first — so the gate reviews stable code as the last step before pushing.
+   Also available (not per-diff) for architecture/tech-debt/test audits. Six modes: `brooks-review` (PR/diff review),
+   `brooks-audit` (architecture), `brooks-debt` (tech debt), `brooks-test` (test quality),
+   `brooks-health` (composite score), `brooks-sweep` (full sweep + fixes). Invoke by asking
+   naturally ("review this diff", "audit the architecture", "where's our worst tech debt?") or,
+   where your agent supports slash/`$` commands, `/brooks-review` etc. Optional project config:
+   `.brooks-lint.yaml` at repo root (see `.agents/skills/_shared/common.md`). Do **not** treat
+   these findings as auto-authoritative — they advise; you still follow stories-first and ask
+   before acting.
 
 ---
 
@@ -104,3 +123,8 @@ Rules:
 All work needs a story in `product/stories/` before implementation starts.
 
 Each story file and title must include a number, like `story 1 - <title>`.
+
+Each story must include a **## Review** section, filled in before commit/push, recording the
+`brooks-review` run on the story's diff: the Health Score and each 🔴 Critical finding with how
+it was resolved (fixed) or justified (why it's acceptable). Per rule 2's lifecycle the gate runs
+**after tests pass and before committing/pushing**; an unresolved Critical blocks the push.

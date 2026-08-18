@@ -32,6 +32,8 @@
 - Each story file must have a number in the title: `story-N-<title>.md`
 - Write the story, present the plan, wait for approval before coding
 - Stories are permanent — do not reuse numbers
+- **Lifecycle:** story → plan → approval → implement → write tests → **tests pass** → **`brooks-review` the diff** → resolve findings → **then** commit & push
+- **Mandatory review gate:** run `brooks-review` (the brooks-lint skill in `.agents/skills/`) on the diff **after tests pass and before committing/pushing.** An unresolved 🔴 **Critical** finding **blocks the commit/push** — fix it or record an explicit justification in the story's Review section. The review is static (it reads code + tests, does not run them), so tests are written and green first. See `AGENTS.md` rule 9.
 
 ### Explain Before Acting
 - **Always tell the user what you're going to do BEFORE doing it**
