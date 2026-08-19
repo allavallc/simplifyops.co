@@ -1,7 +1,7 @@
 ## Working Rules (read first)
 
 1. **James is off-limits.** Never call `POST /messages`, message the Telegram bot, or simulate a user message via any API or script. All interaction with James goes through Anthony. Injected messages burn session limits, corrupt task context, and confuse Anthony mid-task. Not permitted for testing without explicit instruction.
-2. **Stories first.** All implementation work needs a numbered story in `product/stories/story-N-<title>.md` before coding. Write the story, present the plan, wait for approval. Numbers are permanent — never reuse. **Lifecycle:** story → plan → approval → **branch (rule 10)** → **code → write logging → write tests** → **`brooks-review` + `brooks-audit` → fix findings, re-run until clean** → **focused `ruff` + `pytest`** → **full `ruff` + `pytest`** → **commit → push → merge to `main` → archive story → delete work branch** (rule 10). The brooks gate runs on the *written* code + tests (it's static — before the suite is run) and must come back **clean** before you run ruff/pytest, commit, or push (see rule 9). A story is not *done* until the gate is clean, both `ruff`/`pytest` passes are green, and it's been merged + archived.
+2. **Stories first.** All implementation work needs a numbered story in `product/stories/story-N-<title>.md` before coding. Write the story, present the plan, wait for approval. Numbers are permanent — never reuse. **Lifecycle:** story → plan → approval → **branch (rule 10)** → **code → write logging → write tests → commit (WIP)** → **rebase onto `origin/main`** → **`brooks-review` + `brooks-audit` → fix, re-run until clean** → **focused `ruff` + `pytest`** → **full `ruff` + `pytest`** → **amend → push → merge to `main` → archive story → delete work branch** (rule 10). You commit first so you can rebase; the **gate runs once, on the rebased (integrated) result** — so "green" means green on top of the latest `main`, never stale (see rule 9). A story is not *done* until the gate is clean on the rebased branch, both `ruff`/`pytest` passes are green, and it's been merged + archived.
 2a. **DO NOT BUILD SERVER-SIDE HTML.** The admin is **API-first**: a Vite+React+TS client-side SPA (`admin-client/`, served static at `/app`) consuming typed JSON `/api/admin/*` endpoints. **Never** add server-rendered pages/Jinja templates for admin UI. New admin surfaces = a JSON API endpoint + a React view in the SPA. The old `/admin` Jinja pages are legacy being retired — do not extend them. (Anthony, emphatic, 2026-08-13/14.)
 2b. **The design guide in `design/` is the master for ALL UI. No deviation, ever.** Every UI change — layout, color, type, spacing, component, copy tone — must conform to `design/` (start at `design/style-guide.md`). You may not improvise, "improve," or reinterpret the design; matching the guide is not optional and there are **no exceptions**. **If anything is unspecified, ambiguous, or appears to conflict — ASK Anthony. Never assume, never fill the gap yourself.** When the guide and the code disagree, the guide wins and you flag it. (Anthony, 2026-08-15.)
 3. **No architecture choices without asking.** Implementation approach, service boundaries, data model, technology selection — if there's more than one reasonable way, stop and ask. "Simplest path" is not a reason.
@@ -20,13 +20,13 @@
    at `.agents/skills/` (vendor-neutral; MIT). They are **provider-agnostic** — any agent that
    loads Agent Skills (Codex/James, Claude Code, Cursor, Gemini, etc.) discovers them from that
    folder via each skill's `description`. **Mandatory review gate (part of rule 2's lifecycle):**
-   every story runs **`brooks-review` (diff) *and* `brooks-audit` (architecture) once code, logging,
-   and tests are *written* — before you run `ruff`/`pytest`, and before you commit or push.** The
-   gate is **iterative: fix findings and re-run until it comes back clean.** An unresolved
-   🔴 **Critical** from either blocks progressing to the ruff/pytest + commit/push steps — fix it or
-   record an explicit justification in the story's Review section; 🟡/🟢 are fixed or justified there
-   too. The reviews are **static** (they read code + test files; they do not run tests) — which is
-   why they run *before* the suite executes: structure is made clean first, then ruff/pytest run.
+   every story runs **`brooks-review` (diff) *and* `brooks-audit` (architecture) on the *rebased*
+   work branch** — i.e. after you commit your work (WIP) and `git rebase origin/main`, and before
+   push/merge — so the gate validates the **integrated** result, never stale code. Run the brooks
+   reviews first (they're **static** — they read code + test files, they don't run tests) and
+   **iterate: fix findings and re-run until clean**, *then* run focused + full `ruff`/`pytest`. An
+   unresolved 🔴 **Critical** from either brooks mode blocks push/merge — fix it or record an
+   explicit justification in the story's Review section; 🟡/🟢 are fixed or justified there too.
    **Testing-phase progress readout.** Once you enter the testing phase, print this standard
    status line and reprint it every time you advance a stage, marking the current position with
    `(**HERE**)` — so Anthony can see exactly where the run is at a glance:
@@ -43,14 +43,20 @@
 10. **Work branches — all story/feature work (never on `main`).** `main` is **production**
     (GitHub Pages auto-deploys on push; there is **no staging**), so never commit feature/story
     work directly to it. Every story/feature is built on a **work branch off `main`**, named to
-    match its story: **`story-N-<slug>`** (same slug as the story file). When the story is *done*
-    (rule-2 lifecycle complete — tests pass, `brooks-review` clean of unresolved 🔴 Critical):
-    1. **commit** the work on the branch;
-    2. **push** the branch, then **merge it to `main`** (an agent does the merge — no external PR
+    match its story: **`story-N-<slug>`** (same slug as the story file). To finish a story:
+    1. **commit** your work on the branch (WIP — you'll amend after the gate);
+    2. **rebase onto latest `main` — never skip this:** `git fetch origin` then
+       `git rebase origin/main`, so your branch sits on top of whatever landed meanwhile and the
+       merge **can't reverse** someone else's work; resolve any conflicts;
+    3. **run the gate on the rebased result** (rules 2 & 9): `brooks-review` + `brooks-audit` until
+       clean, then focused + full `ruff`/`pytest`; fix findings and **amend**. Running the gate
+       *here — after the rebase* — is the point: it validates the integrated code, so "green"
+       can't be stale. An unresolved 🔴 Critical blocks the rest.
+    4. **push** the branch, then **merge it to `main`** (an agent does the merge — no external PR
        review required; use `git merge --no-ff` so the story branch stays traceable) and push `main`;
-    3. **archive the story:** `git mv product/stories/story-N-<slug>.md product/stories/archive/`
+    5. **archive the story:** `git mv product/stories/story-N-<slug>.md product/stories/archive/`
        and commit — so `product/stories/` lists only active work;
-    4. **clean up the work branch:** delete it locally (`git branch -d story-N-<slug>`) and on the
+    6. **clean up the work branch:** delete it locally (`git branch -d story-N-<slug>`) and on the
        remote (`git push origin :story-N-<slug>`).
     Non-feature housekeeping (docs, this archive move, `agent-coordination.md` entries) may go
     straight to `main`. Coordinate on shared infra per rule 8 before branching work that touches it.
