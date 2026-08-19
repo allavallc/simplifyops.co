@@ -26,8 +26,11 @@ logs/
 
 # Python
 billing/venv/
+.venv/
 __pycache__/
 *.pyc
+.pytest_cache/
+.ruff_cache/
 
 # Local machine-specific Claude Code settings
 .claude/settings.local.json

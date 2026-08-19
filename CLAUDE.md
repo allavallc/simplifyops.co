@@ -32,8 +32,9 @@
 - Each story file must have a number in the title: `story-N-<title>.md`
 - Write the story, present the plan, wait for approval before coding
 - Stories are permanent — do not reuse numbers
-- **Lifecycle:** story → plan → approval → implement → write tests → **tests pass** → **`brooks-review` the diff** → resolve findings → **then** commit & push
-- **Mandatory review gate:** run `brooks-review` (the brooks-lint skill in `.agents/skills/`) on the diff **after tests pass and before committing/pushing.** An unresolved 🔴 **Critical** finding **blocks the commit/push** — fix it or record an explicit justification in the story's Review section. The review is static (it reads code + tests, does not run them), so tests are written and green first. See `AGENTS.md` rule 9.
+- **Lifecycle:** story → plan → approval → branch → **code → write logging → write tests** → **`brooks-review` + `brooks-audit` → fix findings, re-run until clean** → **focused `ruff` + `pytest`** → **full `ruff` + `pytest`** → **commit → push** → merge to `main` → archive story → delete branch
+- **Mandatory review gate:** run **both** `brooks-review` (diff) **and** `brooks-audit` (architecture) — the brooks-lint skills in `.agents/skills/` — **once code/logging/tests are written, before running `ruff`/`pytest` and before committing/pushing.** Re-run until clean. An unresolved 🔴 **Critical** finding from **either** **blocks progressing** — fix it or record an explicit justification in the story's Review section. The reviews are static (they read code + tests, do not run them), so they run before the suite executes. See `AGENTS.md` rule 9.
+- **Testing-phase readout:** during the testing phase, print and keep updating a status line marking the current stage with `(**HERE**)`, e.g. `brooks audit > fixing findings > focused ruff > focused pytest (**HERE**) > full ruff > full pytest > done`.
 
 ### Explain Before Acting
 - **Always tell the user what you're going to do BEFORE doing it**

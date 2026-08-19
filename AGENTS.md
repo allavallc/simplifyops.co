@@ -1,7 +1,7 @@
 ## Working Rules (read first)
 
 1. **James is off-limits.** Never call `POST /messages`, message the Telegram bot, or simulate a user message via any API or script. All interaction with James goes through Anthony. Injected messages burn session limits, corrupt task context, and confuse Anthony mid-task. Not permitted for testing without explicit instruction.
-2. **Stories first.** All implementation work needs a numbered story in `product/stories/story-N-<title>.md` before coding. Write the story, present the plan, wait for approval. Numbers are permanent — never reuse. **Lifecycle:** story → plan → approval → implement → **write tests → tests pass** → **`brooks-review` the diff → resolve findings** → **then** commit & push. The brooks-review gate runs *after tests pass and before committing/pushing* (see rule 9); a story is not *done* until it has passed that gate.
+2. **Stories first.** All implementation work needs a numbered story in `product/stories/story-N-<title>.md` before coding. Write the story, present the plan, wait for approval. Numbers are permanent — never reuse. **Lifecycle:** story → plan → approval → **branch (rule 10)** → **code → write logging → write tests** → **`brooks-review` + `brooks-audit` → fix findings, re-run until clean** → **focused `ruff` + `pytest`** → **full `ruff` + `pytest`** → **commit → push → merge to `main` → archive story → delete work branch** (rule 10). The brooks gate runs on the *written* code + tests (it's static — before the suite is run) and must come back **clean** before you run ruff/pytest, commit, or push (see rule 9). A story is not *done* until the gate is clean, both `ruff`/`pytest` passes are green, and it's been merged + archived.
 2a. **DO NOT BUILD SERVER-SIDE HTML.** The admin is **API-first**: a Vite+React+TS client-side SPA (`admin-client/`, served static at `/app`) consuming typed JSON `/api/admin/*` endpoints. **Never** add server-rendered pages/Jinja templates for admin UI. New admin surfaces = a JSON API endpoint + a React view in the SPA. The old `/admin` Jinja pages are legacy being retired — do not extend them. (Anthony, emphatic, 2026-08-13/14.)
 2b. **The design guide in `design/` is the master for ALL UI. No deviation, ever.** Every UI change — layout, color, type, spacing, component, copy tone — must conform to `design/` (start at `design/style-guide.md`). You may not improvise, "improve," or reinterpret the design; matching the guide is not optional and there are **no exceptions**. **If anything is unspecified, ambiguous, or appears to conflict — ASK Anthony. Never assume, never fill the gap yourself.** When the guide and the code disagree, the guide wins and you flag it. (Anthony, 2026-08-15.)
 3. **No architecture choices without asking.** Implementation approach, service boundaries, data model, technology selection — if there's more than one reasonable way, stop and ask. "Simplest path" is not a reason.
@@ -20,12 +20,19 @@
    at `.agents/skills/` (vendor-neutral; MIT). They are **provider-agnostic** — any agent that
    loads Agent Skills (Codex/James, Claude Code, Cursor, Gemini, etc.) discovers them from that
    folder via each skill's `description`. **Mandatory review gate (part of rule 2's lifecycle):**
-   every story runs **`brooks-review` on its diff *after* its tests pass and *before* you commit
-   or push.** An unresolved 🔴 **Critical** finding **blocks the commit/push** — fix it or record
-   an explicit justification in the story's Review section; 🟡/🟢 are fixed or justified there too.
-   The review is static (reads code + test files; it does not run tests), which is why tests are
-   written and green first — so the gate reviews stable code as the last step before pushing.
-   Also available (not per-diff) for architecture/tech-debt/test audits. Six modes: `brooks-review` (PR/diff review),
+   every story runs **`brooks-review` (diff) *and* `brooks-audit` (architecture) once code, logging,
+   and tests are *written* — before you run `ruff`/`pytest`, and before you commit or push.** The
+   gate is **iterative: fix findings and re-run until it comes back clean.** An unresolved
+   🔴 **Critical** from either blocks progressing to the ruff/pytest + commit/push steps — fix it or
+   record an explicit justification in the story's Review section; 🟡/🟢 are fixed or justified there
+   too. The reviews are **static** (they read code + test files; they do not run tests) — which is
+   why they run *before* the suite executes: structure is made clean first, then ruff/pytest run.
+   **Testing-phase progress readout.** Once you enter the testing phase, print this standard
+   status line and reprint it every time you advance a stage, marking the current position with
+   `(**HERE**)` — so Anthony can see exactly where the run is at a glance:
+   > `brooks audit > fixing findings > focused ruff > focused pytest > full ruff > full pytest > done`
+   e.g. `brooks audit > fixing findings > focused ruff > focused pytest (**HERE**) > full ruff > full pytest > done`.
+   `brooks-debt`/`brooks-test`/`brooks-health` remain opt-in. Six modes: `brooks-review` (PR/diff review),
    `brooks-audit` (architecture), `brooks-debt` (tech debt), `brooks-test` (test quality),
    `brooks-health` (composite score), `brooks-sweep` (full sweep + fixes). Invoke by asking
    naturally ("review this diff", "audit the architecture", "where's our worst tech debt?") or,
@@ -33,6 +40,20 @@
    `.brooks-lint.yaml` at repo root (see `.agents/skills/_shared/common.md`). Do **not** treat
    these findings as auto-authoritative — they advise; you still follow stories-first and ask
    before acting.
+10. **Work branches — all story/feature work (never on `main`).** `main` is **production**
+    (GitHub Pages auto-deploys on push; there is **no staging**), so never commit feature/story
+    work directly to it. Every story/feature is built on a **work branch off `main`**, named to
+    match its story: **`story-N-<slug>`** (same slug as the story file). When the story is *done*
+    (rule-2 lifecycle complete — tests pass, `brooks-review` clean of unresolved 🔴 Critical):
+    1. **commit** the work on the branch;
+    2. **push** the branch, then **merge it to `main`** (an agent does the merge — no external PR
+       review required; use `git merge --no-ff` so the story branch stays traceable) and push `main`;
+    3. **archive the story:** `git mv product/stories/story-N-<slug>.md product/stories/archive/`
+       and commit — so `product/stories/` lists only active work;
+    4. **clean up the work branch:** delete it locally (`git branch -d story-N-<slug>`) and on the
+       remote (`git push origin :story-N-<slug>`).
+    Non-feature housekeeping (docs, this archive move, `agent-coordination.md` entries) may go
+    straight to `main`. Coordinate on shared infra per rule 8 before branching work that touches it.
 
 ---
 
@@ -124,7 +145,9 @@ All work needs a story in `product/stories/` before implementation starts.
 
 Each story file and title must include a number, like `story 1 - <title>`.
 
-Each story must include a **## Review** section, filled in before commit/push, recording the
-`brooks-review` run on the story's diff: the Health Score and each 🔴 Critical finding with how
-it was resolved (fixed) or justified (why it's acceptable). Per rule 2's lifecycle the gate runs
-**after tests pass and before committing/pushing**; an unresolved Critical blocks the push.
+Each story must include a **## Review** section, filled in before commit/push, recording **both**
+the `brooks-review` (diff) and `brooks-audit` (architecture) runs: each one's Health Score and
+each 🔴 Critical finding with how it was resolved (fixed) or justified (why it's acceptable), plus
+confirmation that focused **and** full `ruff` + `pytest` came back green. Per rule 2's lifecycle
+the brooks gate runs **once code/logging/tests are written — before ruff/pytest and before
+commit/push — and is re-run until clean**; an unresolved Critical from either blocks the push.

@@ -1,0 +1,5 @@
+# Dev-only tooling for the story lifecycle gate (ruff + pytest).
+# Install into a repo-local venv (Debian trixie is externally-managed):
+#   python3 -m venv .venv && ./.venv/bin/pip install -r requirements-dev.txt
+ruff==0.16.3
+pytest==9.1.1
