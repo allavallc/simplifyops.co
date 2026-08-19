@@ -520,22 +520,6 @@ def call_hermes(prompt: str, user_id: str = None, channel: str = None,
 
 
 # ---------------------------------------------------------------------------
-# Identity enrichment (fire-and-forget)
-# ---------------------------------------------------------------------------
-
-def enrich_identity(raw: dict) -> None:
-    headers = {"content-type": "application/json"}
-    if WHITELIST_WEBHOOK_SECRET:
-        headers["x-telegram-bot-api-secret-token"] = WHITELIST_WEBHOOK_SECRET
-    try:
-        r = requests.post(WHITELIST_WEBHOOK_URL, json=raw, headers=headers, timeout=5)
-        if not r.ok:
-            log.warning("Identity enrichment returned %d", r.status_code)
-    except Exception as e:
-        log.warning("Identity enrichment failed: %s", e)
-
-
-# ---------------------------------------------------------------------------
 # Unknown sender — queue for admin approval
 # ---------------------------------------------------------------------------
 
