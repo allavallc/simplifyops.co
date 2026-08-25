@@ -2,7 +2,7 @@
 
 1. **James is off-limits.** Never call `POST /messages`, message the Telegram bot, or simulate a user message via any API or script. All interaction with James goes through Anthony. Injected messages burn session limits, corrupt task context, and confuse Anthony mid-task. Not permitted for testing without explicit instruction.
 2. **Stories first.** All implementation work needs a numbered story in `product/stories/story-N-<title>.md` before coding. Write the story, present the plan, wait for approval. Numbers are permanent — never reuse. **Lifecycle:** story → plan → approval → **branch (rule 10)** → **code → write logging → write tests → commit (WIP)** → **rebase onto `origin/main`** → **`brooks-review` + `brooks-audit` → fix, re-run until clean** → **focused `ruff` + `pytest`** → **full `ruff` + `pytest`** → **amend → push → merge to `main` → archive story → delete work branch** (rule 10). You commit first so you can rebase; the **gate runs once, on the rebased (integrated) result** — so "green" means green on top of the latest `main`, never stale (see rule 9). A story is not *done* until the gate is clean on the rebased branch, both `ruff`/`pytest` passes are green, and it's been merged + archived.
-2a. **DO NOT BUILD SERVER-SIDE HTML.** The admin is **API-first**: a Vite+React+TS client-side SPA (`admin-client/`, served static at `/app`) consuming typed JSON `/api/admin/*` endpoints. **Never** add server-rendered pages/Jinja templates for admin UI. New admin surfaces = a JSON API endpoint + a React view in the SPA. The old `/admin` Jinja pages are legacy being retired — do not extend them. (Anthony, emphatic, 2026-08-13/14.)
+2a. **Admin UI is server-rendered HTML (Jinja) — no React, no SPA, no build step.** Admin pages are Jinja templates in `admin_api/templates/`, rendered by FastAPI at `/admin`, reading data from the `/api/*` JSON layer. **Never** add a client-side JS framework (React/Vue/Svelte), an SPA, or an npm/Vite build step for admin UI. New admin surfaces = a JSON API endpoint (if needed) + a Jinja page. The React SPA (`admin-client/`) is **legacy being retired** (`product/stories/story-25-retire-react-consolidate-jinja.md`) — do not extend it. (Owner decision, 2026-08-22 — **reverses** the prior 2026-08-13/14 React-SPA/"never Jinja" direction.)
 2b. **The design guide in `design/` is the master for ALL UI. No deviation, ever.** Every UI change — layout, color, type, spacing, component, copy tone — must conform to `design/` (start at `design/style-guide.md`). You may not improvise, "improve," or reinterpret the design; matching the guide is not optional and there are **no exceptions**. **If anything is unspecified, ambiguous, or appears to conflict — ASK Anthony. Never assume, never fill the gap yourself.** When the guide and the code disagree, the guide wins and you flag it. (Anthony, 2026-08-15.)
 3. **No architecture choices without asking.** Implementation approach, service boundaries, data model, technology selection — if there's more than one reasonable way, stop and ask. "Simplest path" is not a reason.
 4. **No short-term fixes.** No workarounds "just to get something working." Do it right or say what the right approach requires and hold.
@@ -60,6 +60,14 @@
        remote (`git push origin :story-N-<slug>`).
     Non-feature housekeeping (docs, this archive move, `agent-coordination.md` entries) may go
     straight to `main`. Coordinate on shared infra per rule 8 before branching work that touches it.
+11. **Dev process + architectural rules — read before implementing.** The full LLM dev process for
+    this repo — **build → test → log → fix → commit → push to staging** — lives in
+    **`product/product-dev-guidelines.md`**. The binding **architectural rules** (API-first;
+    server-rendered Jinja, not React; no god-modules; one-way dependencies; single source of truth
+    for settings; repo-owned/declared dependencies; test seams; local → staging → prod) live in
+    **`ops/current-architecture.md` → "Architectural rules"**. Both are enforced alongside the
+    lifecycle in rules 2/9/10 — a change that breaks an architectural rule needs an explicit
+    decision recorded in a story (rule 3).
 
 ---
 
@@ -74,7 +82,8 @@ James (Hermes agent) is **functional** — `gpt-5.5` via `openai-codex`, profile
 | `simplifyops-gateway.service` | Telegram adapter + DurableWorkflowWorker | 3001 internal |
 | `simplifyops-agent-runtime.service` | Hermes gateway run + API server | 8642 |
 | `hindsight.service` | Memory | 8888 |
-| `people-whitelist.service` | Node.js — **DISABLED**, replaced by `admin_api/` | — |
+
+_(The legacy `people-whitelist.service` Node app was removed — governance is owned by `admin_api/`.)_
 
 ### Message flow
 Telegram → `gateway/gateway.py` adapter → `POST /messages` (FastAPI) → governance (`person_identities`→`people`) → `work_items(ready)` → DurableWorkflowWorker (concurrency=1) → session-cap check/rotate → `POST /api/sessions/{id}/chat` (Hermes API, system_message + tool_context token) → `reply_ready` → Telegram send → `completed`. Failures retry ≤3 → `failed_needs_review` + Telegram alert.
@@ -84,7 +93,7 @@ Telegram → `gateway/gateway.py` adapter → `POST /messages` (FastAPI) → gov
 - Durable worker + Telegram adapter: `gateway/gateway.py`
 - Hermes config (env-owned, gitignored): `/home/pi/.hermes/profiles/simplifyops/config.yaml`
 - Secrets: `/home/pi/.config/relay.env`, `/home/pi/.config/simplifyops-runtime.env`
-- Canonical architecture: `plan/current-architecture.md`
+- Canonical architecture: `ops/current-architecture.md`
 - DB: `whitelist_app` (unix socket `/var/run/postgresql`)
 
 ### Settings page (`/admin/settings`)
@@ -99,7 +108,7 @@ config.yaml wires 4 `@dguido/google-workspace-mcp` servers. Package self-manages
 
 For a full explanation of how the James stack works (Hermes, Hindsight, the Telegram gateway, profiles, secrets, and service startup order), read:
 
-**`plan/james-stack-setup.md`**
+**`ops/james-stack-setup.md`**
 
 Start there before making any changes to this system.
 
@@ -108,6 +117,11 @@ Start there before making any changes to this system.
 ## Hermes Gateway — Known Issues & Fixes
 
 ### codex_runtime.py — SDK TypeError on get_final_response() (2026-05-26)
+
+> **RESOLVED upstream as of Hermes v0.20.5 (2026-08-25).** After the 0.19→0.20.5 upgrade the runtime
+> boots clean **without** the patch below — the bug is fixed upstream. The fresh 0.20.5
+> `codex_runtime.py` is unpatched and `simplifyops-agent-runtime` runs with NRestarts=0. Keep the
+> note below as history; only re-derive a fix if the crash-loop returns on a future version.
 
 **Symptom:** `hermes-gateway.service` crashes in a restart loop. Journal shows:
 ```
