@@ -6,19 +6,16 @@ PATCH /api/admin/settings/session-health — save session message cap
 """
 
 import logging
-import os
 import subprocess
 import tempfile
 from pathlib import Path
 
-import psycopg2.extras
 import yaml
+from audit import log_audit
+from db import DEFAULT_SESSION_MESSAGE_CAP, DEFAULT_TIMEZONE, Db, get_setting, set_setting
+from deps import require_admin
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-
-from audit import log_audit
-from db import Db
-from deps import require_admin
 
 log = logging.getLogger("simplifyops-admin")
 router = APIRouter(prefix="/api/admin/settings")
@@ -62,6 +59,53 @@ def _clear_session_mappings() -> None:
 
 # ── Read ──────────────────────────────────────────────────────────────────
 
+@router.get("/state")
+async def get_state(admin=Depends(require_admin)):
+    """Aggregate non-secret settings state for the SPA — one call."""
+    import urllib.request
+
+    profile_root = Path("/home/pi/.hermes/profiles/simplifyops")
+    soul = profile_root / "SOUL.md"
+
+    db_ok = False
+    session_cap = DEFAULT_SESSION_MESSAGE_CAP
+    default_tz = DEFAULT_TIMEZONE
+    try:
+        with Db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1"); db_ok = True
+                session_cap = int(get_setting(cur, "session_message_cap", DEFAULT_SESSION_MESSAGE_CAP))
+                default_tz = get_setting(cur, "default_timezone", DEFAULT_TIMEZONE)
+    except Exception:
+        pass
+
+    hindsight_ok = False
+    try:
+        urllib.request.urlopen("http://127.0.0.1:8888/health", timeout=2); hindsight_ok = True
+    except Exception:
+        pass
+
+    cfg = _read_config()
+    return {
+        "health": [
+            {"name": "Admin API", "detail": "http://localhost:3000", "ok": True},
+            {"name": "Soul", "detail": str(soul), "ok": soul.exists()},
+            {"name": "Memory URL (Hindsight)", "detail": "http://127.0.0.1:8888", "ok": hindsight_ok},
+            {"name": "Postgres", "detail": "whitelist_app (unix socket)", "ok": db_ok},
+        ],
+        "runtime": {
+            "provider": cfg.get("model", {}).get("provider"),
+            "model": cfg.get("model", {}).get("default"),
+            "memory_url": cfg.get("memory", {}).get("url"),
+            "has_credentials": bool(cfg.get("model", {}).get("provider")),
+        },
+        "approvals_mode": cfg.get("approvals", {}).get("mode"),
+        "session_message_cap": session_cap,
+        "default_timezone": default_tz,
+        "approvals_modes": list(APPROVALS_MODES),
+    }
+
+
 @router.get("/runtime")
 async def get_runtime(admin=Depends(require_admin)):
     cfg = _read_config()
@@ -78,9 +122,8 @@ async def get_runtime(admin=Depends(require_admin)):
 async def get_session_health(admin=Depends(require_admin)):
     with Db() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT value FROM admin_settings WHERE key='session_message_cap'")
-            row = cur.fetchone()
-    return {"session_message_cap": int(row[0]) if row else 100}
+            cap = get_setting(cur, "session_message_cap", DEFAULT_SESSION_MESSAGE_CAP)
+    return {"session_message_cap": int(cap)}
 
 
 # ── Mutation ──────────────────────────────────────────────────────────────
@@ -146,18 +189,10 @@ async def patch_session_health(body: SessionHealthPatch, admin=Depends(require_a
 
     with Db() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT value FROM admin_settings WHERE key='session_message_cap'")
-            old_row = cur.fetchone()
-            old_val = int(old_row[0]) if old_row else 100
+            old_val = int(get_setting(cur, "session_message_cap", DEFAULT_SESSION_MESSAGE_CAP))
 
         with conn.cursor() as cur:
-            cur.execute("""
-                INSERT INTO admin_settings (key, value, updated_by)
-                VALUES ('session_message_cap', %s, %s)
-                ON CONFLICT (key) DO UPDATE
-                    SET value=%s, updated_at=now(), updated_by=%s
-            """, (str(body.session_message_cap), admin["email"],
-                  str(body.session_message_cap), admin["email"]))
+            set_setting(cur, "session_message_cap", body.session_message_cap, admin["email"])
 
     log_audit(admin["email"], "settings_session_cap_update",
               old_value={"session_message_cap": old_val},
@@ -178,9 +213,8 @@ class DefaultTimezonePatch(BaseModel):
 async def get_default_timezone(admin=Depends(require_admin)):
     with Db() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT value FROM admin_settings WHERE key='default_timezone'")
-            row = cur.fetchone()
-    return {"default_timezone": row[0] if row else "America/New_York"}
+            tz = get_setting(cur, "default_timezone", DEFAULT_TIMEZONE)
+    return {"default_timezone": tz}
 
 
 @router.patch("/default-timezone")
@@ -196,16 +230,9 @@ async def patch_default_timezone(body: DefaultTimezonePatch, admin=Depends(requi
 
     with Db() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT value FROM admin_settings WHERE key='default_timezone'")
-            old_row = cur.fetchone()
-            old_val = old_row[0] if old_row else None
+            old_val = get_setting(cur, "default_timezone", None)
         with conn.cursor() as cur:
-            cur.execute("""
-                INSERT INTO admin_settings (key, value, updated_by)
-                VALUES ('default_timezone', %s, %s)
-                ON CONFLICT (key) DO UPDATE
-                    SET value=%s, updated_at=now(), updated_by=%s
-            """, (tz, admin["email"], tz, admin["email"]))
+            set_setting(cur, "default_timezone", tz, admin["email"])
 
     log_audit(admin["email"], "settings_default_timezone_update",
               old_value={"default_timezone": old_val},

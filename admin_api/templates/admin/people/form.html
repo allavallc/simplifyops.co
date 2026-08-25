@@ -1,54 +1,49 @@
 {% extends "base.html" %}
-{% block title %}{{ 'Edit' if person else 'Add' }} person{% endblock %}
+{% block title %}{{ 'Edit' if is_edit else 'Add' }} person{% endblock %}
 {% block content %}
 <section class="page-intro card">
   <p class="eyebrow">People</p>
   <div class="page-intro-row">
     <div>
-      <h1>{{ 'Edit person' if person else 'Add person' }}</h1>
-      <p class="lede">{{ 'Update the person record.' if person else 'Add a new person to the system.' }}</p>
+      <h1>{{ 'Edit person' if is_edit else 'Add person' }}</h1>
+      <p class="lede">{{ 'Update this governance record.' if is_edit else 'Create a governance record. Add channel identities from the detail page after saving.' }}</p>
     </div>
-    <div class="actions compact">
-      <a class="button secondary" href="/admin/people">Cancel</a>
-    </div>
+    <div class="actions compact"><a class="button secondary" href="/admin/people">Cancel</a></div>
   </div>
 </section>
 <section class="card">
-  {% if error %}<p style="color:var(--danger)">{{ error }}</p>{% endif %}
-  <form class="form-grid" method="post" action="{{ '/admin/people/' + person.person_email + '/edit' if person else '/admin/people/new' }}">
-    {% if person %}<label><span>ID</span><input value="{{ person.id }}" class="mono" readonly /></label>{% endif %}
-    <label><span>Name</span><input name="person_name" value="{{ person.person_name or '' if person else '' }}" /></label>
-    <label><span>Email</span><input name="person_email" type="email" required value="{{ person.person_email if person else '' }}" {{ 'readonly' if person else '' }} /></label>
-    <label><span>Telegram ID</span><input name="telegram_id" inputmode="numeric" value="{{ person.telegram_id or '' if person else '' }}" /></label>
-    <label><span>Phone country code</span><input name="phone_country_code" value="{{ person.phone_country_code or '' if person else '' }}" /></label>
-    <label><span>Phone number</span><input name="phone_number" value="{{ person.phone_number or '' if person else '' }}" /></label>
-    <label><span>Timezone</span><input name="timezone" placeholder="America/New_York" value="{{ person.timezone or '' if person else '' }}" /><small class="field-note">IANA name (e.g. America/New_York). Leave blank to inherit the org default.</small></label>
-    <label><span>Status</span>
-      <select name="status">
-        <option value="allowed" {{ 'selected' if not person or person.status == 'allowed' }}>Allowed</option>
-        <option value="blocked" {{ 'selected' if person and person.status == 'blocked' }}>Blocked</option>
-      </select>
+  {% if error %}<p class="form-error" style="color:var(--danger)">{{ error }}</p>{% endif %}
+  <form class="form-grid" method="post" action="{{ '/admin/people/' + person.person_email + '/edit' if is_edit else '/admin/people/new' }}">
+    <label><span>First name</span><input name="first_name" required value="{{ person.first_name or '' }}" /></label>
+    <label><span>Last name</span><input name="last_name" required value="{{ person.last_name or '' }}" /></label>
+    <label><span>Primary email</span>
+      <input name="primary_email" type="email" required value="{{ person.person_email or '' }}" {{ 'readonly' if is_edit else '' }} />
+      {% if is_edit %}<small class="field-note">Primary email is the person's key — not editable here.</small>{% endif %}
     </label>
     <label><span>Authority</span>
       <select name="authority">
-        {% for a in ['member','contact','admin','super_admin'] %}
-        <option value="{{ a }}" {{ 'selected' if person and person.authority == a }}>{{ a }}</option>
+        {% for a in authorities %}
+        <option value="{{ a }}" {{ 'selected' if person.authority == a }}>{{ a }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label><span>Timezone</span>
+      <select name="timezone">
+        <option value="">Org default</option>
+        {% for tz in timezones %}
+        <option value="{{ tz }}" {{ 'selected' if person.timezone == tz }}>{{ tz }}</option>
         {% endfor %}
       </select>
     </label>
     <label class="toggle-field">
-      <input type="checkbox" name="can_converse" value="1" {{ 'checked' if not person or person.can_converse }} />
+      <input type="checkbox" name="can_converse" value="1" {{ 'checked' if person.can_converse }} />
       <span>Can converse (agent may reply)</span>
     </label>
     <label class="toggle-field">
-      <input type="checkbox" name="can_influence" value="1" {{ 'checked' if not person or person.can_influence }} />
+      <input type="checkbox" name="can_influence" value="1" {{ 'checked' if person.can_influence }} />
       <span>Can influence memory</span>
     </label>
-    <label class="toggle-field">
-      <input type="checkbox" name="admin" value="1" {{ 'checked' if person and person.admin }} />
-      <span>Admin UI access</span>
-    </label>
-    <label class="full-width"><span>Notes</span><textarea name="notes" rows="4">{{ person.notes or '' if person else '' }}</textarea></label>
+    <label class="full-width"><span>Notes</span><textarea name="notes" rows="4">{{ person.notes or '' }}</textarea></label>
     <div class="actions full-width">
       <button class="button primary" type="submit">Save person</button>
       <a class="button secondary" href="/admin/people">Back</a>

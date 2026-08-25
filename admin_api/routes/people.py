@@ -4,13 +4,11 @@ Owns people + person_identities — the source of truth for who may talk to the 
 """
 
 import psycopg2.extras
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.requests import Request
-from pydantic import BaseModel
-
+from audit import log_audit
 from db import Db
 from deps import require_admin
-from audit import log_audit
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/people")
 

@@ -9,11 +9,10 @@ import uuid
 
 import httpx
 import psycopg2.extras
-from fastapi import APIRouter, Depends, HTTPException
-
+from audit import log_audit
 from db import Db
 from deps import require_admin
-from audit import log_audit
+from fastapi import APIRouter, Depends, HTTPException
 
 router = APIRouter(prefix="/api/inbox")
 

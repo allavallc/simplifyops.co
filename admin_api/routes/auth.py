@@ -3,13 +3,12 @@ import os
 import secrets
 
 import psycopg2.extras
+from audit import log_audit
 from authlib.integrations.httpx_client import AsyncOAuth2Client
+from db import Db
 from fastapi import APIRouter, Request
 from fastapi.responses import RedirectResponse
 from starlette.responses import Response
-
-from db import Db
-from audit import log_audit
 
 log = logging.getLogger("simplifyops-admin")
 
@@ -26,7 +25,7 @@ async def _exchange_code(code: str) -> dict:
         client_secret=GOOGLE_CLIENT_SECRET,
         redirect_uri=GOOGLE_REDIRECT_URI,
     ) as client:
-        token = await client.fetch_token(
+        await client.fetch_token(
             "https://oauth2.googleapis.com/token",
             code=code,
         )

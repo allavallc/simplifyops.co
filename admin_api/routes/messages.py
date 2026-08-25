@@ -13,17 +13,15 @@ Responsibilities:
   9. Return 202 Accepted immediately (never wait for runtime)
 """
 
-import uuid
 import json
-from datetime import datetime, timezone
+import uuid
 
 import psycopg2.errors
 import psycopg2.extras
-from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel
-
-from db import Db
 from audit import log_audit
+from db import Db
+from fastapi import APIRouter, Request
+from pydantic import BaseModel
 
 router = APIRouter()
 

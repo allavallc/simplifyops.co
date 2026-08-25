@@ -40,6 +40,15 @@ ALTER TABLE people ADD COLUMN IF NOT EXISTS timezone text;
 -- issues DELETE FROM a data entity; "delete" sets this, and rows are restorable.
 ALTER TABLE people ADD COLUMN IF NOT EXISTS deleted_at timestamptz;
 
+-- Name split (story-21, spec people-page.md): first_name + last_name. person_name is
+-- kept in sync on writes (first + ' ' + last) so legacy readers keep working.
+ALTER TABLE people ADD COLUMN IF NOT EXISTS first_name text;
+ALTER TABLE people ADD COLUMN IF NOT EXISTS last_name  text;
+UPDATE people
+SET first_name = split_part(person_name, ' ', 1),
+    last_name  = NULLIF(regexp_replace(person_name, '^\S+\s*', ''), '')
+WHERE first_name IS NULL AND person_name IS NOT NULL AND person_name <> '';
+
 -- admin_sessions table for FastAPI admin login
 CREATE TABLE IF NOT EXISTS admin_sessions (
     id          text PRIMARY KEY,

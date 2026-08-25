@@ -4,23 +4,24 @@ Invoice Generator — reads Google Sheet, generates PDF, sends email.
 Controlled by clients.yaml and invoice-template.md
 """
 
-import sys
 import json
-import yaml
-import gspread
 import smtplib
-from pathlib import Path
+import sys
 from datetime import datetime
-from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email.mime.text import MIMEText
 from email import encoders
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from pathlib import Path
+
+import gspread
+import yaml
 from google.oauth2.service_account import Credentials
 from jinja2 import Template
 
 # For PDF generation
 try:
-    from weasyprint import HTML, CSS
+    from weasyprint import HTML
     HAS_WEASYPRINT = True
 except ImportError:
     HAS_WEASYPRINT = False

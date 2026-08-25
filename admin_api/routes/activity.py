@@ -1,8 +1,7 @@
 import psycopg2.extras
-from fastapi import APIRouter, Depends, HTTPException
-
 from db import Db
 from deps import require_admin
+from fastapi import APIRouter, Depends, HTTPException
 
 router = APIRouter(prefix="/api/activity")
 

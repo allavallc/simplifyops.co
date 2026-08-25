@@ -5,27 +5,30 @@ from pathlib import Path
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 
+import people_service as svc
 import psycopg2.extras
+from db import DEFAULT_SESSION_MESSAGE_CAP, DEFAULT_TIMEZONE, Db, get_setting, init_pool
 from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from starlette.middleware.sessions import SessionMiddleware
-
-from db import init_pool, Db
-from routes.health import router as health_router
+from routes.activity import router as activity_router
+from routes.admin_memories import router as admin_memories_router
+from routes.admin_people import router as admin_people_router
+from routes.admin_tools import router as admin_tools_router
 from routes.auth import router as auth_router
+from routes.health import router as health_router
+from routes.inbox import router as inbox_router
 from routes.messages import router as messages_router
 from routes.people import router as people_router
-from routes.inbox import router as inbox_router
-from routes.activity import router as activity_router
-from routes.tool_contexts import router as tool_contexts_router
 from routes.settings import router as settings_router
+from routes.tool_contexts import router as tool_contexts_router
+from starlette.middleware.sessions import SessionMiddleware
 
 SESSION_SECRET = os.environ["ADMIN_SESSION_SECRET"]
 BASE_DIR = Path(__file__).parent
 from jinja2 import Environment, FileSystemLoader
 from starlette.templating import Jinja2Templates as _Jinja2Templates
+
 _jinja_env = Environment(
     loader=FileSystemLoader(str(BASE_DIR / "templates")),
     autoescape=True,
@@ -55,6 +58,9 @@ app.include_router(health_router)
 app.include_router(auth_router)
 app.include_router(messages_router)
 app.include_router(people_router)
+app.include_router(admin_people_router)
+app.include_router(admin_tools_router)
+app.include_router(admin_memories_router)
 app.include_router(inbox_router)
 app.include_router(activity_router)
 app.include_router(tool_contexts_router)
@@ -82,6 +88,15 @@ def _user(request: Request) -> dict | None:
     if not email:
         return None
     return {"email": email, "authority": request.session.get("authority")}
+
+
+def _actor(request: Request) -> dict:
+    """Acting admin for people_service calls (needs id for the self-deactivation guard)."""
+    return {
+        "email": request.session.get("admin_email"),
+        "authority": request.session.get("authority"),
+        "id": request.session.get("admin_id"),
+    }
 
 
 def _guard(request: Request):
@@ -115,17 +130,12 @@ async def admin_index(request: Request):
 
 
 @app.get("/admin/people")
-async def people_index(request: Request):
+async def people_index(request: Request, status: str = "active"):
     if g := _guard(request): return g
-    show_deleted = request.query_params.get("show_deleted") in ("1", "true", "yes")
-    where = "" if show_deleted else "WHERE deleted_at IS NULL"
     with Db() as conn:
-        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute(f"SELECT * FROM people {where} ORDER BY created_at DESC")
-            people = list(cur.fetchall())
+        status, people = svc.list_index(conn, status)
     return render(request, "admin/people/index.html", {
-        "request": request, "user": _user(request), "people": people,
-        "show_deleted": show_deleted,
+        "request": request, "user": _user(request), "people": people, "status": status,
     })
 
 
@@ -133,7 +143,9 @@ async def people_index(request: Request):
 async def person_new(request: Request):
     if g := _guard(request): return g
     return render(request, "admin/people/form.html", {
-        "request": request, "user": _user(request), "person": None,
+        "request": request, "user": _user(request), "is_edit": False,
+        "person": {"can_converse": True, "can_influence": True},
+        "authorities": svc.AUTHORITIES, "timezones": svc.TIMEZONES,
     })
 
 
@@ -141,53 +153,43 @@ async def person_new(request: Request):
 async def person_create(request: Request):
     if g := _guard(request): return g
     form = await request.form()
-    with Db() as conn:
-        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            email = str(form.get("person_email", "")).lower().strip()
-            tg = str(form.get("telegram_id", "")).strip() or None
-            cur.execute("""
-                INSERT INTO people (person_name, person_email, authority, can_converse, can_influence,
-                    status, admin, notes, telegram_id, phone_country_code, phone_number, timezone, created_by, updated_at)
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,now())
-                ON CONFLICT (person_email) DO UPDATE SET
-                    person_name=EXCLUDED.person_name, authority=EXCLUDED.authority,
-                    can_converse=EXCLUDED.can_converse, can_influence=EXCLUDED.can_influence,
-                    status=EXCLUDED.status, admin=EXCLUDED.admin, notes=EXCLUDED.notes,
-                    telegram_id=EXCLUDED.telegram_id, phone_country_code=EXCLUDED.phone_country_code,
-                    phone_number=EXCLUDED.phone_number, timezone=EXCLUDED.timezone, updated_at=now()
-                RETURNING id
-            """, (
-                str(form.get("person_name", "")).strip() or None, email,
-                form.get("authority", "member"), bool(form.get("can_converse")),
-                bool(form.get("can_influence")), form.get("status", "allowed"),
-                bool(form.get("admin")), str(form.get("notes", "")).strip() or None,
-                tg, str(form.get("phone_country_code", "")).strip() or None,
-                str(form.get("phone_number", "")).strip() or None,
-                str(form.get("timezone", "")).strip() or None,
-                request.session["admin_email"],
-            ))
-            person_id = cur.fetchone()["id"]
-        if tg:
-            with conn.cursor() as cur:
-                cur.execute("""
-                    INSERT INTO person_identities (person_id, identity_type, identity_value, normalized_value, is_primary)
-                    VALUES (%s,'telegram',%s,%s,true)
-                    ON CONFLICT (identity_type, normalized_value) DO UPDATE SET person_id=EXCLUDED.person_id
-                """, (person_id, tg, tg))
-    return RedirectResponse(f"/admin/people/{email}", status_code=303)
+    values = {
+        "first_name": str(form.get("first_name", "")).strip(),
+        "last_name": str(form.get("last_name", "")).strip(),
+        "person_email": str(form.get("primary_email", "")).strip().lower(),
+        "authority": form.get("authority", "member"),
+        "can_converse": bool(form.get("can_converse")),
+        "can_influence": bool(form.get("can_influence")),
+        "timezone": str(form.get("timezone", "")).strip(),
+        "notes": str(form.get("notes", "")).strip(),
+    }
+    try:
+        with Db() as conn:
+            svc.create_person(
+                conn, _actor(request),
+                first_name=values["first_name"], last_name=values["last_name"],
+                primary_email=values["person_email"], authority=values["authority"],
+                can_converse=values["can_converse"], can_influence=values["can_influence"],
+                timezone=values["timezone"] or None, notes=values["notes"] or None)
+    except svc.PeopleError as e:
+        return render(request, "admin/people/form.html", {
+            "request": request, "user": _user(request), "person": values, "is_edit": False,
+            "authorities": svc.AUTHORITIES, "timezones": svc.TIMEZONES, "error": e.code,
+        })
+    return RedirectResponse(f"/admin/people/{values['person_email']}", status_code=303)
 
 
 @app.get("/admin/people/{email}/edit")
 async def person_edit(email: str, request: Request):
     if g := _guard(request): return g
-    with Db() as conn:
-        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute("SELECT * FROM people WHERE person_email=%s", (email.lower(),))
-            person = cur.fetchone()
-    if not person:
+    try:
+        with Db() as conn:
+            person = svc.get_detail(conn, svc.person_id_for_email(conn, email))
+    except svc.PeopleError:
         return RedirectResponse("/admin/people")
     return render(request, "admin/people/form.html", {
-        "request": request, "user": _user(request), "person": person,
+        "request": request, "user": _user(request), "person": person, "is_edit": True,
+        "authorities": svc.AUTHORITIES, "timezones": svc.TIMEZONES,
     })
 
 
@@ -195,75 +197,94 @@ async def person_edit(email: str, request: Request):
 async def person_update(email: str, request: Request):
     if g := _guard(request): return g
     form = await request.form()
-    tg = str(form.get("telegram_id", "")).strip() or None
-    with Db() as conn:
-        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute("""
-                UPDATE people SET
-                    person_name=COALESCE(%s,person_name), authority=%s,
-                    can_converse=%s, can_influence=%s, status=%s, admin=%s,
-                    notes=COALESCE(%s,notes), telegram_id=COALESCE(%s,telegram_id),
-                    phone_country_code=COALESCE(%s,phone_country_code),
-                    phone_number=COALESCE(%s,phone_number),
-                    timezone=%s, updated_at=now()
-                WHERE person_email=%s RETURNING id
-            """, (
-                str(form.get("person_name", "")).strip() or None,
-                form.get("authority","member"), bool(form.get("can_converse")),
-                bool(form.get("can_influence")), form.get("status","allowed"),
-                bool(form.get("admin")), str(form.get("notes","")).strip() or None,
-                tg, str(form.get("phone_country_code","")).strip() or None,
-                str(form.get("phone_number","")).strip() or None,
-                str(form.get("timezone","")).strip() or None, email.lower(),
-            ))
-            row = cur.fetchone()
-        if row and tg:
-            with conn.cursor() as cur:
-                cur.execute("""
-                    INSERT INTO person_identities (person_id, identity_type, identity_value, normalized_value, is_primary)
-                    VALUES (%s,'telegram',%s,%s,true)
-                    ON CONFLICT (identity_type, normalized_value) DO UPDATE SET person_id=EXCLUDED.person_id
-                """, (row["id"], tg, tg))
-    return RedirectResponse(f"/admin/people/{email}", status_code=303)
+    values = {
+        "first_name": str(form.get("first_name", "")).strip(),
+        "last_name": str(form.get("last_name", "")).strip(),
+        "person_email": email.lower(),
+        "authority": form.get("authority", "member"),
+        "can_converse": bool(form.get("can_converse")),
+        "can_influence": bool(form.get("can_influence")),
+        "timezone": str(form.get("timezone", "")).strip(),
+        "notes": str(form.get("notes", "")).strip(),
+    }
+    try:
+        with Db() as conn:
+            pid = svc.person_id_for_email(conn, email)
+            svc.update_person(
+                conn, _actor(request), pid,
+                first_name=values["first_name"], last_name=values["last_name"],
+                authority=values["authority"], can_converse=values["can_converse"],
+                can_influence=values["can_influence"],
+                timezone=values["timezone"] or None, notes=values["notes"] or None)
+    except svc.PeopleError as e:
+        return render(request, "admin/people/form.html", {
+            "request": request, "user": _user(request), "person": values, "is_edit": True,
+            "authorities": svc.AUTHORITIES, "timezones": svc.TIMEZONES, "error": e.code,
+        })
+    return RedirectResponse(f"/admin/people/{email.lower()}", status_code=303)
 
 
-@app.post("/admin/people/{email}/delete")
-async def person_delete(email: str, request: Request):
+@app.post("/admin/people/{email}/deactivate")
+async def person_deactivate(email: str, request: Request):
     if g := _guard(request): return g
-    # Soft delete (story-20): never physically remove. Restorable via /restore.
-    with Db() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                "UPDATE people SET deleted_at=now(), updated_at=now() "
-                "WHERE person_email=%s AND deleted_at IS NULL",
-                (email.lower(),),
-            )
+    form = await request.form()
+    try:
+        with Db() as conn:
+            pid = svc.person_id_for_email(conn, email)
+            svc.deactivate_person(conn, _actor(request), pid, str(form.get("confirm", "")))
+    except svc.PeopleError as e:
+        return RedirectResponse(f"/admin/people/{email.lower()}?error={e.code}", status_code=303)
     return RedirectResponse("/admin/people", status_code=303)
 
 
-@app.post("/admin/people/{email}/restore")
-async def person_restore(email: str, request: Request):
+@app.post("/admin/people/{email}/activate")
+async def person_activate(email: str, request: Request):
     if g := _guard(request): return g
-    with Db() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                "UPDATE people SET deleted_at=NULL, updated_at=now() WHERE person_email=%s",
-                (email.lower(),),
-            )
-    return RedirectResponse(f"/admin/people/{email}", status_code=303)
+    try:
+        with Db() as conn:
+            svc.activate_person(conn, _actor(request), svc.person_id_for_email(conn, email))
+    except svc.PeopleError:
+        pass
+    return RedirectResponse(f"/admin/people/{email.lower()}", status_code=303)
+
+
+@app.post("/admin/people/{email}/identities")
+async def person_identity_add(email: str, request: Request):
+    if g := _guard(request): return g
+    form = await request.form()
+    try:
+        with Db() as conn:
+            pid = svc.person_id_for_email(conn, email)
+            svc.add_identity(conn, _actor(request), pid,
+                             str(form.get("identity_type", "")), str(form.get("value", "")))
+    except svc.PeopleError as e:
+        return RedirectResponse(f"/admin/people/{email.lower()}?error={e.code}", status_code=303)
+    return RedirectResponse(f"/admin/people/{email.lower()}", status_code=303)
+
+
+@app.post("/admin/people/{email}/identities/{identity_id}/delete")
+async def person_identity_delete(email: str, identity_id: int, request: Request):
+    if g := _guard(request): return g
+    try:
+        with Db() as conn:
+            pid = svc.person_id_for_email(conn, email)
+            svc.delete_identity(conn, _actor(request), pid, identity_id)
+    except svc.PeopleError as e:
+        return RedirectResponse(f"/admin/people/{email.lower()}?error={e.code}", status_code=303)
+    return RedirectResponse(f"/admin/people/{email.lower()}", status_code=303)
 
 
 @app.get("/admin/people/{email}")
 async def person_view(email: str, request: Request):
     if g := _guard(request): return g
-    with Db() as conn:
-        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute("SELECT * FROM people WHERE person_email=%s", (email.lower(),))
-            person = cur.fetchone()
-    if not person:
+    try:
+        with Db() as conn:
+            person = svc.get_detail(conn, svc.person_id_for_email(conn, email))
+    except svc.PeopleError:
         return RedirectResponse("/admin/people")
     return render(request, "admin/people/view.html", {
         "request": request, "user": _user(request), "person": person,
+        "identity_types": svc.IDENTITY_TYPES, "error": request.query_params.get("error"),
     })
 
 
@@ -341,8 +362,9 @@ async def activity_page(request: Request, status: str = "all"):
 @app.get("/admin/settings")
 async def settings_page(request: Request):
     if g := _guard(request): return g
-    import yaml
     import urllib.request
+
+    import yaml
 
     # Health checks — name / detail / ok
     profile_root = Path("/home/pi/.hermes/profiles/simplifyops")
@@ -389,12 +411,10 @@ async def settings_page(request: Request):
     settings = {}
     with Db() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT value FROM admin_settings WHERE key='session_message_cap'")
-            row = cur.fetchone()
-            settings["session_message_cap"] = int(row[0]) if row else 100
-            cur.execute("SELECT value FROM admin_settings WHERE key='default_timezone'")
-            row = cur.fetchone()
-            settings["default_timezone"] = row[0] if row else "America/New_York"
+            settings["session_message_cap"] = int(
+                get_setting(cur, "session_message_cap", DEFAULT_SESSION_MESSAGE_CAP))
+            settings["default_timezone"] = get_setting(
+                cur, "default_timezone", DEFAULT_TIMEZONE)
 
     # File locations (presence/status only — no contents)
     profile_root = Path("/home/pi/.hermes/profiles/simplifyops")

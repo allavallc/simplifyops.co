@@ -11,32 +11,74 @@
     </div>
   </div>
 </section>
+
+{% if error %}<section class="card"><p class="form-error" style="color:var(--danger)">{{ error }}</p></section>{% endif %}
+
 <section class="card">
   <div class="detail-grid">
     <div class="detail-card"><span>ID</span><strong class="mono">{{ person.id }}</strong></div>
-    <div class="detail-card"><span>Email</span><strong>{{ person.person_email }}</strong></div>
-    <div class="detail-card"><span>Telegram ID</span><strong>{{ person.telegram_id or '—' }}</strong></div>
-    <div class="detail-card"><span>Phone</span><strong>{{ (person.phone_country_code or '') + ' ' + (person.phone_number or '') or '—' }}</strong></div>
-    <div class="detail-card"><span>Timezone</span><strong>{{ person.timezone or 'Org default (EST)' }}</strong></div>
+    <div class="detail-card"><span>Primary email</span><strong>{{ person.person_email }}</strong></div>
     <div class="detail-card"><span>Authority</span><strong><span class="status-pill {{ person.authority }}">{{ person.authority }}</span></strong></div>
     <div class="detail-card"><span>Can converse</span><strong>{{ 'Yes' if person.can_converse else 'No' }}</strong></div>
     <div class="detail-card"><span>Can influence memory</span><strong>{{ 'Yes' if person.can_influence else 'No' }}</strong></div>
-    <div class="detail-card"><span>Status</span><strong><span class="status-pill {{ person.status }}">{{ person.status }}</span></strong></div>
-    <div class="detail-card"><span>Admin UI</span><strong>{{ 'Yes' if person.admin else '—' }}</strong></div>
+    <div class="detail-card"><span>Timezone</span><strong>{{ person.timezone or 'Org default' }}</strong></div>
+    <div class="detail-card"><span>Status</span><strong>{% if person.is_active %}<span class="status-pill allowed">active</span>{% else %}<span class="status-pill blocked">inactive</span>{% endif %}</strong></div>
     <div class="detail-card full"><span>Notes</span><strong>{{ person.notes or '—' }}</strong></div>
   </div>
-  <div class="actions detail-actions">
-    {% if person.deleted_at %}
-    <span class="status-pill blocked">Deleted {{ person.deleted_at }}</span>
-    <form method="post" action="/admin/people/{{ person.person_email }}/restore" style="display:inline">
-      <button class="button primary" type="submit">Restore</button>
-    </form>
-    {% else %}
-    <a class="button primary" href="/admin/people/{{ person.person_email }}/edit">Edit</a>
-    <form method="post" action="/admin/people/{{ person.person_email }}/delete" style="display:inline" onsubmit="return confirm('Delete (soft) {{ person.person_email }}? It can be restored.')">
-      <button class="button danger" type="submit">Delete</button>
-    </form>
-    {% endif %}
-  </div>
+</section>
+
+<section class="card">
+  <h2>Identities</h2>
+  <p class="lede">How runtime governance recognizes this person across channels.</p>
+  {% if person.identities %}
+  <table class="data-table">
+    <thead><tr><th>Type</th><th>Value</th><th>Primary</th><th></th></tr></thead>
+    <tbody>
+      {% for i in person.identities %}
+      <tr>
+        <td>{{ i.identity_type }}</td>
+        <td class="mono">{{ i.identity_value }}</td>
+        <td>{{ 'Yes' if i.is_primary else '—' }}</td>
+        <td>
+          {% if not i.is_primary %}
+          <form method="post" action="/admin/people/{{ person.person_email }}/identities/{{ i.id }}/delete" style="display:inline"
+                onsubmit="return confirm('Delete identity {{ i.identity_type }}: {{ i.identity_value }}?')">
+            <button class="button danger tiny" type="submit">Delete</button>
+          </form>
+          {% else %}<span class="field-note">primary — not removable</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty-state">No identities yet.</p>
+  {% endif %}
+
+  <form class="form-inline" method="post" action="/admin/people/{{ person.person_email }}/identities" style="margin-top:1rem">
+    <label><span>Type</span>
+      <select name="identity_type">
+        {% for t in identity_types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+      </select>
+    </label>
+    <label><span>Value</span><input name="value" required placeholder="e.g. 123456789 or user@example.com" /></label>
+    <button class="button secondary" type="submit">Add identity</button>
+  </form>
+</section>
+
+<section class="card danger-zone">
+  <h2>Danger zone</h2>
+  {% if person.is_active %}
+  <p class="lede">Deactivating blocks admin login and runtime conversation. The record is retained and can be reactivated. Type <strong class="mono">{{ person.deactivate_confirm_phrase }}</strong> to confirm.</p>
+  <form class="form-inline" method="post" action="/admin/people/{{ person.person_email }}/deactivate">
+    <label><span>Confirm</span><input name="confirm" required placeholder="{{ person.deactivate_confirm_phrase }}" /></label>
+    <button class="button danger" type="submit">Deactivate person</button>
+  </form>
+  {% else %}
+  <p class="lede">This person is deactivated.</p>
+  <form method="post" action="/admin/people/{{ person.person_email }}/activate" style="display:inline">
+    <button class="button primary" type="submit">Reactivate person</button>
+  </form>
+  {% endif %}
 </section>
 {% endblock %}
