@@ -37,3 +37,7 @@ __pycache__/
 
 # Multi-agent coordination log (local only — never commit; repo is public)
 agent-coordination.md
+
+# Infrastructure inventory — VM/IP/SSH/deploy/env details (local only; repo is public).
+# A tracked template lives at ops/INFRASTRUCTURE.example.md
+ops/INFRASTRUCTURE.md
