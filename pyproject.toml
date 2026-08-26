@@ -1,0 +1,21 @@
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+extend-exclude = [
+    ".venv",
+    "node_modules",
+    "people-whitelist",
+    "graphify-out",
+    "billing/venv",
+    "_site",
+]
+
+[tool.ruff.lint]
+# Start lean so the legacy baseline is green; tighten over time.
+# E9/F7/F82 = real syntax/logic errors; F401/F811 = unused/redefined; I = import order.
+select = ["E9", "F", "I"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"

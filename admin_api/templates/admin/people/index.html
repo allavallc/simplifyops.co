@@ -4,49 +4,41 @@
 <section class="page-intro card">
   <p class="eyebrow">People</p>
   <div class="page-intro-row">
-    <div><h1>People</h1><p class="lede">Everyone allowed to interact with the agent.</p></div>
+    <div><h1>People</h1><p class="lede">Everyone the agent is governed to recognize.</p></div>
     <div class="actions compact">
-      {% if show_deleted %}
-      <a class="button secondary" href="/admin/people">Hide deleted</a>
-      {% else %}
-      <a class="button secondary" href="/admin/people?show_deleted=1">Show deleted</a>
-      {% endif %}
       <a class="button primary" href="/admin/people/new">Add person</a>
     </div>
   </div>
 </section>
 <section class="card">
+  <div class="filter-bar">
+    {% for f in ['active', 'inactive', 'all'] %}
+    <a class="button tiny {{ 'primary' if status == f else 'secondary' }}" href="/admin/people?status={{ f }}">{{ f | capitalize }}</a>
+    {% endfor %}
+  </div>
   {% if people %}
   <table class="data-table">
     <thead>
-      <tr><th>ID</th><th>Name</th><th>Email</th><th>Telegram</th><th>Authority</th><th>Can converse</th><th>Status</th><th></th></tr>
+      <tr><th>ID</th><th>Name</th><th>Email</th><th>Authority</th><th>Converse</th><th>Influence</th><th>Identities</th><th>Active</th><th></th></tr>
     </thead>
     <tbody>
       {% for p in people %}
-      <tr {{ 'class=is-deleted' | safe if p.deleted_at else '' }}>
+      <tr {{ 'class=is-deleted' | safe if not p.is_active else '' }}>
         <td class="mono">{{ p.id }}</td>
-        <td>{{ p.person_name or '—' }}{% if p.deleted_at %} <span class="status-pill blocked">deleted</span>{% endif %}</td>
+        <td><a href="/admin/people/{{ p.person_email }}">{{ p.person_name or '—' }}</a></td>
         <td>{{ p.person_email }}</td>
-        <td>{{ p.telegram_id or '—' }}</td>
         <td><span class="status-pill {{ p.authority }}">{{ p.authority }}</span></td>
-        <td>{{ 'Yes' if p.can_converse else '<span class="status-pill blocked">No</span>' | safe }}</td>
-        <td><span class="status-pill {{ p.status }}">{{ p.status }}</span></td>
-        <td>
-          <a class="button secondary tiny" href="/admin/people/{{ p.person_email }}">View</a>
-          {% if p.deleted_at %}
-          <form method="post" action="/admin/people/{{ p.person_email }}/restore" style="display:inline">
-            <button class="button secondary tiny" type="submit">Restore</button>
-          </form>
-          {% else %}
-          <a class="button secondary tiny" href="/admin/people/{{ p.person_email }}/edit">Edit</a>
-          {% endif %}
-        </td>
+        <td>{{ 'Yes' if p.can_converse else 'No' }}</td>
+        <td>{{ 'Yes' if p.can_influence else 'No' }}</td>
+        <td class="mono small">{{ p.identity_types | join(', ') if p.identity_types else '—' }}</td>
+        <td>{% if p.is_active %}<span class="status-pill allowed">active</span>{% else %}<span class="status-pill blocked">inactive</span>{% endif %}</td>
+        <td><a class="button secondary tiny" href="/admin/people/{{ p.person_email }}">View</a></td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
   {% else %}
-  <p class="empty-state">No people yet.</p>
+  <p class="empty-state">No people match the current filters.</p>
   {% endif %}
 </section>
 {% endblock %}

@@ -1,5 +1,5 @@
-from fastapi import APIRouter
 from db import get_conn, put_conn
+from fastapi import APIRouter
 
 router = APIRouter()
 

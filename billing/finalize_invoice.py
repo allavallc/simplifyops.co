@@ -1,9 +1,10 @@
-import gspread
-from google.oauth2.service_account import Credentials
 import sys
-import yaml
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
+import gspread
+import yaml
+from google.oauth2.service_account import Credentials
 
 if len(sys.argv) < 3:
     print("Usage: python3 finalize_invoice.py <ClientName> <Month>")

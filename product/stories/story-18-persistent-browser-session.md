@@ -1,11 +1,13 @@
 # Story 18 - Persistent browser session across turns (stop tearing the browser down every reply)
 
 ## Status
-**Implemented 2026-08-13 (Option A + dedicated Xvfb :1) — awaiting live verification.**
-Applied: `xvfb-james.service` (Xvfb :1), runtime `DISPLAY=:1` + `After=xvfb-james.service`,
-`config.yaml` `browser: {headed: true, inactivity_timeout: 3600}`, runtime restarted. Not
-yet proven end-to-end — needs Anthony to run a real survey (Claude cannot message James).
-Root cause was confirmed in runtime code; approach approved 2026-08-12/13.
+**VALIDATED live 2026-08-13.** Browser launched on Xvfb `:1` (isolated) and persisted across
+turns — James logged in → opened survey #1 → reached a question and held it across #207–209
+(furthest ever; per-turn teardown gone). Applied: `xvfb-james.service` (Xvfb :1), runtime
+`DISPLAY=:1` + `After=xvfb-james.service`, `config.yaml` `browser: {headed: true,
+inactivity_timeout: 3600}`. **Follow-up bug found (separate story):** intermittent browser
+reset to about:blank *mid-interaction* (#210) — the older agent-browser/CDP interaction
+flakiness (bug log Attempt A, A3–A5), NOT the per-turn cleanup this story fixed.
 
 ## Problem
 James can never finish a survey because the browser is destroyed after **every**

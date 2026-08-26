@@ -7,9 +7,8 @@ Tokens are short-lived and single-use-safe (no state change on read).
 import hashlib
 
 import psycopg2.extras
-from fastapi import APIRouter, HTTPException
-
 from db import Db
+from fastapi import APIRouter, HTTPException
 
 router = APIRouter(prefix="/api/tool-contexts")
 
