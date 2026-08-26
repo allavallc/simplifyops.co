@@ -82,4 +82,5 @@ env-owned gitignored `config.yaml`, brooks + ruff + pytest gates.
 - Quality/testing/release gates → **40–42**, CI **41**, pre/post-push **38** · Failure/rollback → **58**
 - Whitelabel checklist & source-of-truth map → satisfied by **36** (decisions) + this list
 
-_Next numbering starts at **59**. Full story files are written when a story is picked up (stories-first)._
+_Next new-story number: **60** (59 = renumbered legacy Google-OAuth story, story-37). Full story
+files are written when a story is picked up (stories-first)._

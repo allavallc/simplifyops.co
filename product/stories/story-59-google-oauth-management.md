@@ -1,4 +1,4 @@
-# Story 8 - Google OAuth Connection Management
+# Story 59 - Google OAuth Connection Management
 
 ## Status
 Not started — prerequisite for Story 9 (MCP connectors)
