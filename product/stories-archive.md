@@ -14,4 +14,7 @@ Completed / rejected / superseded / abandoned stories. The block below is genera
 | 33 | Story 33 - Upgrade Hermes to the latest version, then re-run the full gate | DONE (2026-08-25) — upgrade verified healthy. | `story-33-upgrade-hermes-rerun-gate.md` |
 | 35 | Story 35 - Slim admin_api/main.py to a composition root (extract Jinja page routes) | Done (local, verified live — 2026-08-25). | `story-35-slim-admin-main-composition-root.md` |
 | 36 | Story 36 - Establish product/product-decisions/ (durable decision home) | In progress (branch `story-36-product-decisio… | `story-36-product-decisions-folder.md` |
+| 37 | Story 37 - Tracked story summaries + proposals + sync tool | In progress (branch `story-37-tracked-story-s… | `story-37-tracked-story-summaries.md` |
+| 38 | Story 38 - Feature-dev process doc + push-check scripts + infrastructure file | In progress (branch `story-38-feature-dev-pro… | `story-38-feature-dev-process.md` |
+| 39 | Story 39 - Align AGENTS.md to the whitelabel blueprint governance rules | Done (branch `story-39-align-agents-md`). | `story-39-align-agents-md.md` |
 <!-- END generated -->
