@@ -71,7 +71,7 @@ Telegram → `gateway/gateway.py` adapter → `POST http://127.0.0.1:3000/messag
 - Durable worker + Telegram adapter: `gateway/gateway.py`; gateway tables: `gateway/sql/schema.sql`
 - Hermes config (env-owned, gitignored): `/home/pi/.hermes/profiles/simplifyops/config.yaml`
 - Secrets: `/home/pi/.config/relay.env` (admin+gateway), `/home/pi/.config/simplifyops-runtime.env` (runtime, root-owned)
-- Canonical architecture: `ops/current-architecture.md`. Stories: `product/stories/`.
+- Canonical architecture: `product/product-decisions/current-architecture.md`. Stories: `product/stories/`.
 
 ### Database (`whitelist_app`, unix socket `/var/run/postgresql`)
 `people` (+authority/can_converse/can_influence/status), `person_identities`, `requests`, `channel_events`, `work_items` (+payload jsonb), `hermes_session_mappings` (+logical_session_id/rotation_reason), `admin_settings` (session_message_cap default 100), `tool_contexts`, `contact_requests`, `audit_log`, `google_tokens`.

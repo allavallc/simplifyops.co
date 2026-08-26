@@ -5,7 +5,7 @@
 `install.sh` (pip is deprecated; discovered mid-flight). Recovered from a corrupt `~/.hermes/hermes-agent`
 git checkout (moved aside → fresh clone). Config auto-migrated v33→v39. **codex_runtime patch obsolete**
 (0.20.5 boots clean, NRestarts=0). All services active, API :8642 up, admin `/health` 200. Re-pinned:
-`ops/current-architecture.md` + AGENTS.md updated. Rollback kit at
+`product/product-decisions/current-architecture.md` + AGENTS.md updated. Rollback kit at
 `/home/pi/hermes-upgrade-backup-20260824-213008/`.
 **Gate:** full **pytest green (6 passed)** on the upgraded stack — confirms the upgrade broke nothing.
 Full **ruff = 30 errors** but all **pre-existing** (story-24 baseline + this session's un-gated
@@ -16,7 +16,7 @@ Follow-ups: browser/computer-use deps skipped (re-add via `install.sh --ensure b
 `hermes-agent==0.19.0` still installed but shadowed by the new launcher.
 
 ## Goal
-Upgrade Hermes from the current pinned version (v0.19.0 per `ops/current-architecture.md`) to the
+Upgrade Hermes from the current pinned version (v0.19.0 per `product/product-decisions/current-architecture.md`) to the
 **latest release**, verify the runtime comes back healthy, and then re-run the full quality gate to
 confirm the repo is still green on the upgraded stack.
 
@@ -48,7 +48,7 @@ worked and can roll back; only advance the "current" pin after the new version i
    no restart loop in `journalctl`.
 7. **Run the full gate** (below).
 8. **Only when the new version is up AND all tests pass**, advance the "current" pin to the new
-   version and update `ops/current-architecture.md` (+ AGENTS.md if any known-issue step changed).
+   version and update `product/product-decisions/current-architecture.md` (+ AGENTS.md if any known-issue step changed).
    If anything fails at 5–7, **roll back to the pinned known-good version.**
 
 ## Re-run the full gate (owner's requested sequence)
@@ -66,7 +66,7 @@ if the branch has a diff to review.)
 - Hermes on latest; runtime + gateway healthy, no restart loop; both post-upgrade patches re-applied
   and documented.
 - brooks-audit clean (or justified); focused + full `ruff` and `pytest` all green.
-- `ops/current-architecture.md` version updated.
+- `product/product-decisions/current-architecture.md` version updated.
 
 ## Review
 _(fill before commit/push: brooks-audit [+review] scores/Criticals, then focused + full ruff/pytest green.)_

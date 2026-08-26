@@ -55,5 +55,5 @@ _(fill before commit/push: brooks-review + brooks-audit scores/Criticals, then f
 ruff/pytest green.)_
 
 ## Notes
-Supersedes [[story-9-admin-spa-client]]. AGENTS.md rule 2a + `ops/current-architecture.md` arch
+Supersedes [[story-9-admin-spa-client]]. AGENTS.md rule 2a + `product/product-decisions/current-architecture.md` arch
 rules already updated to the Jinja direction.
