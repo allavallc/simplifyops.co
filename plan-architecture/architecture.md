@@ -1,6 +1,6 @@
 # SimplifyOps Architecture
 
-> Status: historical/working doc. For the live canonical architecture, use `ops/current-architecture.md`.
+> Status: historical/working doc. For the live canonical architecture, use `product/product-decisions/current-architecture.md`.
 
 ## Overview
 

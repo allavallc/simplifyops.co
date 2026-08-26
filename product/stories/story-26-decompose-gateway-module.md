@@ -47,7 +47,7 @@ sequence to avoid churn.
 - No single gateway module carries more than one statable responsibility; `gateway.py` is
   wiring-only.
 - Message flow behavior unchanged (Telegram → work_items → worker → Hermes → send) — verified
-  against `ops/current-architecture.md` message flow.
+  against `product/product-decisions/current-architecture.md` message flow.
 - New unit tests exercise `worker` and `governance` with doubled DB/HTTP seams.
 - Gate: `brooks-review` + `brooks-audit` clean (Critical resolved), then focused + full
   `ruff`/`pytest`, on a `story-26-…` work branch (rule 10). `graphify update .` re-run.

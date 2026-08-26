@@ -5,7 +5,7 @@ two places and win over anything here if they disagree:
 
 - **`AGENTS.md`** — governance rules (stories-first, no architecture without asking, no short-term
   fixes, the review gate, work-branch lifecycle).
-- **`ops/current-architecture.md` → "Architectural rules"** — the binding architectural rules
+- **`product/product-decisions/current-architecture.md` → "Architectural rules"** — the binding architectural rules
   (API-first; server-rendered Jinja not React; no god-modules; one-way dependencies; single source
   of truth for settings; repo-owned/declared dependencies; test seams; local → staging → prod).
 
@@ -18,7 +18,7 @@ story** (AGENTS.md rule 3). Do not work around it.
 
 1. **Read the graph.** `graphify update .` then read `graphify-out/GRAPH_REPORT.md` (or use
    `graphify query/path/explain`). It is the primary map — use it before grep/raw files.
-2. **Read the architectural rules** in `ops/current-architecture.md`.
+2. **Read the architectural rules** in `product/product-decisions/current-architecture.md`.
 3. **Have a story.** All implementation needs a numbered story in `product/stories/`
    (`story-N-<slug>.md`) — written, planned, and **approved** before code. Numbers are permanent.
 4. **Explain before acting** and, for non-trivial changes, ask before proceeding.
@@ -57,7 +57,7 @@ Every step below is mandatory. "Green" only counts **after the rebase**, on the 
   Logging is per-repo (architectural rule 6).
 - Log at the boundaries of each durable step (message intake, governance decision, work-item state
   transitions, outbound send, retries/dead-letter) with the **request/work-item id** so a message
-  can be traced end to end through the flow in `ops/current-architecture.md`.
+  can be traced end to end through the flow in `product/product-decisions/current-architecture.md`.
 - Log enough to debug a failure without a rerun; never log secrets, tokens, or PII (SECURITY RULES
   in `CLAUDE.md`).
 

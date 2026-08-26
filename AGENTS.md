@@ -65,7 +65,7 @@
     **`product/product-dev-guidelines.md`**. The binding **architectural rules** (API-first;
     server-rendered Jinja, not React; no god-modules; one-way dependencies; single source of truth
     for settings; repo-owned/declared dependencies; test seams; local → staging → prod) live in
-    **`ops/current-architecture.md` → "Architectural rules"**. Both are enforced alongside the
+    **`product/product-decisions/current-architecture.md` → "Architectural rules"**. Both are enforced alongside the
     lifecycle in rules 2/9/10 — a change that breaks an architectural rule needs an explicit
     decision recorded in a story (rule 3).
 
@@ -93,7 +93,7 @@ Telegram → `gateway/gateway.py` adapter → `POST /messages` (FastAPI) → gov
 - Durable worker + Telegram adapter: `gateway/gateway.py`
 - Hermes config (env-owned, gitignored): `/home/pi/.hermes/profiles/simplifyops/config.yaml`
 - Secrets: `/home/pi/.config/relay.env`, `/home/pi/.config/simplifyops-runtime.env`
-- Canonical architecture: `ops/current-architecture.md`
+- Canonical architecture: `product/product-decisions/current-architecture.md`
 - DB: `whitelist_app` (unix socket `/var/run/postgresql`)
 
 ### Settings page (`/admin/settings`)
