@@ -60,14 +60,35 @@
        remote (`git push origin :story-N-<slug>`).
     Non-feature housekeeping (docs, this archive move, `agent-coordination.md` entries) may go
     straight to `main`. Coordinate on shared infra per rule 8 before branching work that touches it.
-11. **Dev process + architectural rules — read before implementing.** The full LLM dev process for
-    this repo — **build → test → log → fix → commit → push to staging** — lives in
-    **`product/product-dev-guidelines.md`**. The binding **architectural rules** (API-first;
-    server-rendered Jinja, not React; no god-modules; one-way dependencies; single source of truth
-    for settings; repo-owned/declared dependencies; test seams; local → staging → prod) live in
-    **`product/product-decisions/current-architecture.md` → "Architectural rules"**. Both are enforced alongside the
-    lifecycle in rules 2/9/10 — a change that breaks an architectural rule needs an explicit
-    decision recorded in a story (rule 3).
+11. **Dev process + architectural rules — read before implementing.** The exact command flow
+    (branch off `main` → gate → merge `--no-ff` → cleanup) is **`product/agent-feature-dev-process.md`**;
+    the principles are **`product/product-dev-guidelines.md`**. The binding **PROTECTED architectural
+    invariants** (API-first; server-rendered Jinja not React; no god-modules; one-way dependencies;
+    `people_service` as the single people source of truth; Hermes only via an adapter; config
+    env-owned; test seams; local → staging → prod) live in
+    **`product/product-decisions/current-architecture.md` → "Architectural rules"**. Changing one needs
+    an explicit owner decision recorded in `product/product-decisions/architecture-decisions.md` (rule 3).
+12. **Ask when ambiguous; plan the whole feature first.** Ask before acting whenever instructions,
+    ownership, user-facing behavior, file movement, deployment impact, data, config, OAuth,
+    credentials, or safety boundaries are unclear — don't guess when a wrong assumption could break
+    staging/prod, data, config, channels, or the agent. Plan the full lifecycle (data ownership,
+    save/edit/read/run, retries, duplicates, audit, status, tests, verification, rollback) before
+    slicing work.
+13. **Research before non-trivial claims.** Ground plans and externally-dependent choices
+    (provider/API behavior, dependencies, deploy practices) in repo/source inspection + official docs;
+    use web research when things may have changed, and say so if web access is unavailable.
+14. **Product operating model.** Durable decisions → `product/product-decisions/`; full stories →
+    `product/stories/` (+ `archive/`); compact tracked summaries are `product/stories-list.md`
+    (curated backlog), `stories-archive.md` (generated), `stories-parkinglot.md`, `stories-proposals.md`.
+    After creating/archiving/renumbering stories, run `python3 scripts/sync_story_summaries.py generate`
+    then `check`. Story numbers are permanent — never reused.
+15. **Boundary contracts, agent-operable data, infrastructure.** Define a handoff's full contract
+    (caller/callee, route, in/out schema, persisted vs transient state, `request_id`, idempotency,
+    timeout, retry, credential owner, delivery owner, status mapping, audit fields, redaction) before
+    coding it. Any data the runtime agent can see/act on declares an access level (none/read-only/
+    owner-scoped/admin/super-admin) and reuses the same service+validation+authz+audit as admin
+    surfaces — no broad `change_anything` tools; prefer deactivate/archive over hard delete. Infra
+    details (VM/IP/SSH/deploy) live only in gitignored `ops/INFRASTRUCTURE.md` (template `.example.md`).
 
 ---
 
