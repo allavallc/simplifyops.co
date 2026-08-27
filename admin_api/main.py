@@ -3,7 +3,7 @@ import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from db import Db, init_pool
+from db import init_pool
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from routes.activity import router as activity_router
@@ -18,6 +18,7 @@ from routes.pages import router as pages_router
 from routes.people import router as people_router
 from routes.settings import router as settings_router
 from routes.tool_contexts import router as tool_contexts_router
+from schema_init import run_migrations
 from starlette.middleware.sessions import SessionMiddleware
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
@@ -28,15 +29,8 @@ BASE_DIR = Path(__file__).parent
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_pool()
-    _apply_schema()
+    run_migrations()
     yield
-
-
-def _apply_schema():
-    sql = (BASE_DIR / "schema.sql").read_text()
-    with Db() as conn:
-        with conn.cursor() as cur:
-            cur.execute(sql)
 
 
 app = FastAPI(title="SimplifyOps Admin API", lifespan=lifespan)
