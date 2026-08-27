@@ -45,7 +45,7 @@ env-owned gitignored `config.yaml`, brooks + ruff + pytest gates.
 | 45 ✎ 🧱 | Settings page to spec | Settings | Existing **[[story-32]]** — rebuild all sections, remove UI-only shells, field-save lifecycle + audit; Provider/Model drives 44 | 44 |
 | 46 ✎ 🧱 | Soul/skills/knowledge + self-knowledge | Identity/soul/skills/knowledge | Restructure `souls/james-bott.md` → `soul/` + `knowledge/` + `governance/` policy dir; `scripts/build_agent_self_knowledge.py` (generate/check) + `knowledge/about-myself/sources.md`; authority-filtered | 43 |
 | 47 ✎ | Migrations + schema_init | Persistence/schema | `migrations/` + `admin_api/schema_init.py` replacing schema-on-startup; forward-only, repair-safe, backup-on-apply | — |
-| 48 ✎ 🧱 | Companies + company-access | People/companies model | `companies`, `person_company_access`, `identity_claims` schema + shared service + admin UI; completes People spec (the deferred [[story-31]] follow-up) | 47 |
+| 48 ⏸ 🧱 | Companies + company-access | People/companies model | **PARKED 2026-08-27** (see [[stories-parkinglot]]) — do the rest of P1 first, come back later. `companies`, `person_company_access`, `identity_claims` schema + shared service + admin UI; completes People spec (the deferred [[story-31]] follow-up) | 47 |
 | 49 ✎ | Boundary-contract docs | Boundary contracts | `ops/durable-message-workflow.md`, `ops/channel-message-tracking.md`, `docs/mcp/agent-mcp-master-doc.md` — document each boundary per the contract checklist | 36 |
 | 50 ✎ ⚠️ | Hermes upgrade protocol | Runtime upgrade | `docs/update-hermes-protocol.md` + `scripts/apply_hermes_runtime_patches.py` (marker-based, idempotent, fail-closed) + patch/layout tests; formalizes the 0.19→0.20.5 run + [[hermes-upgrade-pin-workflow]] | — |
 
