@@ -17,4 +17,5 @@ Completed / rejected / superseded / abandoned stories. The block below is genera
 | 37 | Story 37 - Tracked story summaries + proposals + sync tool | In progress (branch `story-37-tracked-story-s… | `story-37-tracked-story-summaries.md` |
 | 38 | Story 38 - Feature-dev process doc + push-check scripts + infrastructure file | In progress (branch `story-38-feature-dev-pro… | `story-38-feature-dev-process.md` |
 | 39 | Story 39 - Align AGENTS.md to the whitelabel blueprint governance rules | Done (branch `story-39-align-agents-md`). | `story-39-align-agents-md.md` |
+| 49 | Story 49 - Boundary-contract docs | Done (branch `story-49-boundary-docs`). | `story-49-boundary-docs.md` |
 <!-- END generated -->
