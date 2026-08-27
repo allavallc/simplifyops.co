@@ -3,8 +3,6 @@ import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
-
 from db import Db, init_pool
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -21,6 +19,8 @@ from routes.people import router as people_router
 from routes.settings import router as settings_router
 from routes.tool_contexts import router as tool_contexts_router
 from starlette.middleware.sessions import SessionMiddleware
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 
 SESSION_SECRET = os.environ["ADMIN_SESSION_SECRET"]
 BASE_DIR = Path(__file__).parent

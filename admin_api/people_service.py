@@ -173,7 +173,7 @@ def create_person(conn, actor, *, first_name, last_name, primary_email, authorit
                 ON CONFLICT (identity_type, normalized_value) DO NOTHING
             """, (person_id, email, email))
     except psycopg2.errors.UniqueViolation:
-        raise PeopleError("email_already_exists", 409)
+        raise PeopleError("email_already_exists", 409) from None
 
     log_audit(actor["email"], "person_created", subject_email=email,
               new_value={"id": person_id, "authority": authority, "name": full_name(first, last)})
@@ -252,7 +252,7 @@ def add_identity(conn, actor, person_id, identity_type, value) -> int:
             """, (person_id, identity_type, raw, normalized))
             identity_id = cur.fetchone()["id"]
     except psycopg2.errors.UniqueViolation:
-        raise PeopleError("identity_already_exists", 409)
+        raise PeopleError("identity_already_exists", 409) from None
 
     log_audit(actor["email"], "person_identity_added", subject_email=person["person_email"],
               new_value={"identity_type": identity_type, "value": normalized})

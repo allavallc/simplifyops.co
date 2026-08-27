@@ -20,5 +20,5 @@ async def list_banks(admin=Depends(require_admin)):
     try:
         data = _get("/v1/default/banks")
     except Exception as e:
-        raise HTTPException(502, f"hindsight_unreachable: {e}")
+        raise HTTPException(502, f"hindsight_unreachable: {e}") from e
     return data

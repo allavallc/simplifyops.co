@@ -11,9 +11,19 @@ extend-exclude = [
 ]
 
 [tool.ruff.lint]
-# Start lean so the legacy baseline is green; tighten over time.
-# E9/F7/F82 = real syntax/logic errors; F401/F811 = unused/redefined; I = import order.
-select = ["E9", "F", "I"]
+# Blueprint rule families: E (pycodestyle), F (pyflakes), I (imports), UP (pyupgrade), B (bugbear).
+# Documented idiom ignores (deviation from strict E-family — revisit if we adopt a formatter):
+#   E501 — long lines are mostly inline SQL / f-strings; wrapping hurts readability here.
+#   E701/E702 — the compact `if g := _guard(request): return g` guard one-liners across page routes.
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501", "E701", "E702"]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI DI defaults (Depends/Query/...) are call-in-default by design — not real B008.
+extend-immutable-calls = [
+    "fastapi.Depends", "fastapi.Query", "fastapi.Path", "fastapi.Body",
+    "fastapi.Form", "fastapi.File", "fastapi.Header", "fastapi.Cookie", "fastapi.Security",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
