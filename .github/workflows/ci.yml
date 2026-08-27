@@ -1,0 +1,33 @@
+name: CI
+
+# Quality gate for the story lifecycle (story-41). Runs on pushes to main and on PRs.
+# Adapted to this repo: native/systemd, no Docker → ruff + pytest + story-summary check only.
+# Known gaps (NOT enforced here): brooks-audit (agent-invoked), Schemathesis API gate (story 42),
+# live service/health checks, staging deploy verification (story 30).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dev tooling
+        run: python -m pip install -r requirements-dev.txt
+
+      - name: Ruff (full)
+        run: ruff check .
+
+      - name: Pytest (full)
+        run: pytest
+
+      - name: Story summaries check
+        run: python3 scripts/sync_story_summaries.py check
