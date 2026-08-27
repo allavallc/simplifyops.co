@@ -41,7 +41,7 @@ async def person_detail(person_id: int, admin=Depends(require_admin)):
         with Db() as conn:
             return svc.get_detail(conn, person_id)
     except svc.PeopleError as e:
-        raise _http(e)
+        raise _http(e) from e
 
 
 # ── mutations ───────────────────────────────────────────────────────────────
@@ -87,7 +87,7 @@ async def create_person(body: PersonCreate, admin=Depends(require_admin)):
                 timezone=body.timezone, notes=body.notes)
         return {"ok": True, "id": person_id}
     except svc.PeopleError as e:
-        raise _http(e)
+        raise _http(e) from e
 
 
 @router.patch("/{person_id}")
@@ -100,7 +100,7 @@ async def update_person(person_id: int, body: PersonUpdate, admin=Depends(requir
                 can_influence=body.can_influence, timezone=body.timezone, notes=body.notes)
         return {"ok": True, "id": person_id}
     except svc.PeopleError as e:
-        raise _http(e)
+        raise _http(e) from e
 
 
 @router.post("/{person_id}/deactivate")
@@ -110,7 +110,7 @@ async def deactivate_person(person_id: int, body: DeactivateRequest, admin=Depen
             svc.deactivate_person(conn, admin, person_id, body.confirm)
         return {"ok": True, "id": person_id, "is_active": False}
     except svc.PeopleError as e:
-        raise _http(e)
+        raise _http(e) from e
 
 
 @router.post("/{person_id}/activate")
@@ -120,7 +120,7 @@ async def activate_person(person_id: int, admin=Depends(require_admin)):
             svc.activate_person(conn, admin, person_id)
         return {"ok": True, "id": person_id, "is_active": True}
     except svc.PeopleError as e:
-        raise _http(e)
+        raise _http(e) from e
 
 
 @router.post("/{person_id}/identities", status_code=201)
@@ -130,7 +130,7 @@ async def add_identity(person_id: int, body: IdentityCreate, admin=Depends(requi
             identity_id = svc.add_identity(conn, admin, person_id, body.identity_type, body.value)
         return {"ok": True, "id": identity_id}
     except svc.PeopleError as e:
-        raise _http(e)
+        raise _http(e) from e
 
 
 @router.delete("/{person_id}/identities/{identity_id}")
@@ -140,4 +140,4 @@ async def delete_identity(person_id: int, identity_id: int, admin=Depends(requir
             svc.delete_identity(conn, admin, person_id, identity_id)
         return {"ok": True}
     except svc.PeopleError as e:
-        raise _http(e)
+        raise _http(e) from e

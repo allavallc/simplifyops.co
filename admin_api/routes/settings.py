@@ -226,7 +226,7 @@ async def patch_default_timezone(body: DefaultTimezonePatch, admin=Depends(requi
         from zoneinfo import ZoneInfo
         ZoneInfo(tz)  # validate it's a real IANA zone
     except Exception:
-        raise HTTPException(400, "invalid_timezone")
+        raise HTTPException(400, "invalid_timezone") from None
 
     with Db() as conn:
         with conn.cursor() as cur:

@@ -10,7 +10,7 @@ import os
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import psycopg2.extras
 from governance import get_person_context
@@ -127,7 +127,7 @@ class DurableWorkflowWorker(threading.Thread):
         delay_note = None
         requested_at = item.get("requested_at")
         if requested_at:
-            elapsed_minutes = (datetime.now(timezone.utc) - requested_at).total_seconds() / 60
+            elapsed_minutes = (datetime.now(UTC) - requested_at).total_seconds() / 60
             if elapsed_minutes > DELAY_THRESHOLD_MINUTES:
                 delay_note = "Note: there was a delay before I could respond — please acknowledge that briefly before answering."
 

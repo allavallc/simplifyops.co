@@ -6,7 +6,7 @@ token via GET /api/tool-contexts/{token}; only the hash is stored.
 
 import hashlib
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from gwdb import get_db_conn
 from logging_setup import get_logger
@@ -24,7 +24,7 @@ def create_tool_context(request_id: str, person_ctx: dict, authority: str,
     """
     raw_token = secrets.token_hex(32)
     token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
-    expires_at = datetime.now(timezone.utc) + timedelta(minutes=TOOL_CONTEXT_TTL_MINUTES)
+    expires_at = datetime.now(UTC) + timedelta(minutes=TOOL_CONTEXT_TTL_MINUTES)
 
     conn = get_db_conn()
     try:
