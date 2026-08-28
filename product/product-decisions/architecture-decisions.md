@@ -5,6 +5,21 @@ here (not buried in stories/handoffs/chat). Each entry: date, decision, why, and
 
 ---
 
+## 2026-08-27 — Hermes upgrade procedure formalized; stale patch steps retired
+**Decision:** The Hermes upgrade procedure is now canonical in the master
+[`plan-architecture/feature-details-if-needed/update-hermes-protocol-2026-08-27.md`](../../plan-architecture/feature-details-if-needed/update-hermes-protocol-2026-08-27.md)
+(pin → inspect → install via `install.sh` → gate → re-pin) — the generic whitelabel draft was rewritten
+in place to this repo's stack and the filename datestamped. The old per-update patch churn is **retired**: the `codex_runtime.py`
+backfill is fixed upstream (0.20.5) and the `EnvironmentFile` re-add applied only to the now-stopped
+**legacy `hermes-gateway.service`** — current `simplifyops-*` units are repo-owned and not regenerated
+by the installer. **There are no current runtime patches**, so `scripts/apply_hermes_runtime_patches.py`
+was **deliberately not built** (an empty patch-applier is scaffolding — CLAUDE.md); the doc records the
+mechanism spec for the first time a real patch is needed. AGENTS.md "Known Issues" updated to point at
+the protocol doc. **This did not change Hermes itself** — it corrects our documented understanding of
+the upgrade boundary so the next agent isn't misled by obsolete patch instructions. **Why:** the stale
+steps described a version/service that no longer applies and would cause an agent to re-apply a
+nonexistent patch. [[story-50]] · reference: `plan-architecture/update-hermes-protocol.md` (blueprint).
+
 ## 2026-08-26 — Adopt the whitelabel blueprint selectively/incrementally
 **Decision:** Follow the genericized blueprint (`~/Desktop/architecture/agents-whitelabel.md`) via a
 prioritized, selective backlog (`product/stories-list.md`), keeping what already works — not a full

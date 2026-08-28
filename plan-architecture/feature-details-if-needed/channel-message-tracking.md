@@ -7,6 +7,9 @@ long-poll overlap) without producing two replies.
 Documented per the rule-15 contract checklist (`AGENTS.md`). Grounded in
 `admin_api/routes/messages.py`, `gateway/intake.py`, `admin_api/schema` (`requests`, `channel_events`).
 
+> **Build-spec doc** (companion to the law [`agents-whitelabel-instructions.md`](../agents-whitelabel-instructions.md)). Last
+> relocated to `plan-architecture/` on 2026-08-27.
+
 ## Tables
 
 | Table | Role |

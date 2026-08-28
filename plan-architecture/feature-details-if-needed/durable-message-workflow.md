@@ -8,6 +8,12 @@ the last committed state; nothing is lost and nothing is silently re-run past it
 Documented per the rule-15 contract checklist (`AGENTS.md`). Grounded in
 `admin_api/routes/messages.py`, `gateway/worker.py`, `gateway/intake.py`.
 
+> **Build-spec doc** (companion to the law [`agents-whitelabel-instructions.md`](../agents-whitelabel-instructions.md)). Last
+> relocated to `plan-architecture/` on 2026-08-27. **Approved divergence from the blueprint:** the
+> blueprint routes the runtime handoff through a private `POST /runtime/messages` bridge (:8090) fronted
+> by a supervisor; **this repo** hands off directly via the `gateway`/`hermes_client` adapter (no bridge
+> yet) and runs natively (no Docker) — a recorded product-decision (2026-08-26), not drift.
+
 ## Overview
 
 ```
