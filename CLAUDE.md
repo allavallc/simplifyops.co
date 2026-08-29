@@ -25,7 +25,7 @@
 
 ### James is off-limits
 
-**Never send messages to James directly.** Do not call `POST /messages` or any admin API endpoint to inject messages, do not message the Telegram bot, and do not simulate user messages via any API or script. All interaction with James goes through Anthony. Injecting messages — even for testing — burns through session limits, corrupts task context, and produces confusing replies mid-task.
+**Never send messages to James directly.** Do not call `POST /messages` or any admin API endpoint to inject messages, do not message the Telegram bot, and do not simulate user messages via any API or script. All interaction with James goes through the owner. Injecting messages — even for testing — burns through session limits, corrupts task context, and produces confusing replies mid-task.
 
 ### Stories First
 - **All work requires a story in `product/stories/` before implementation starts**
@@ -43,9 +43,9 @@
 - For non-trivial changes, ask "Want me to proceed?"
 - Never run commands silently or make changes without explanation
 
-### MCP Work Requires Guidance
-- **Do not build, configure, authorize, or modify MCP servers/connectors without explicit guidance from Anthony (who consults the other LLM).** High mistake potential.
-- The third-party `@dguido/google-workspace-mcp` self-manages OAuth and bypasses app governance/audit — this conflicts with the brain-whitelabel's repo-owned MCP model. Any MCP decision is an architecture decision.
+### MCP Work
+- MCP server/connector changes are **architecture decisions** — plan and get owner approval first (per "No Architecture Choices Without Asking"), like any other boundary change. No special external sign-off is required.
+- The third-party `@dguido/google-workspace-mcp` self-manages OAuth and bypasses app governance/audit — this conflicts with the repo-owned MCP model. Prefer repo-owned connectors.
 
 ---
 
