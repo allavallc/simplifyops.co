@@ -3,3 +3,5 @@
 #   python3 -m venv .venv && ./.venv/bin/pip install -r requirements-dev.txt
 ruff==0.16.3
 pytest==9.1.1
+# App runtime dep exercised by tests (admin_api/runtime_config.py, settings.py parse config.yaml).
+PyYAML==6.0.3
