@@ -41,10 +41,21 @@
   <h2>Runtime controls</h2>
   <p class="section-note">Runtime restart/reload and diagnostics. Restart is required after provider, model, or identity-file changes.</p>
   <div class="actions">
-    <button class="button secondary" disabled title="Backend not yet implemented">Restart runtime</button>
-    <button class="button secondary" disabled title="Backend not yet implemented">Enable prompt diagnostics</button>
+    <button id="restart-runtime-btn" class="button secondary">Restart runtime</button>
+    <button class="button secondary" disabled title="Not yet implemented">Enable prompt diagnostics</button>
   </div>
-  <p class="field-note" style="margin-top:12px">Prompt diagnostics log counts and timing only — never raw prompt text, user text, or tokens.</p>
+  <div id="restart-status" style="margin-top:8px"></div>
+  <p class="field-note" style="margin-top:12px">Config changes (provider, model, approvals, MCP servers) save immediately but only take effect after an explicit restart. Prompt diagnostics log counts and timing only — never raw prompt text, user text, or tokens.</p>
+  <script>
+  document.getElementById('restart-runtime-btn').addEventListener('click', async () => {
+    const status = document.getElementById('restart-status');
+    if (!confirm('Restart the agent runtime now? Active sessions briefly reconnect.')) return;
+    status.textContent = 'Restarting runtime…';
+    const r = await fetch('/api/admin/runtime/restart', {method: 'POST'});
+    const d = await r.json();
+    status.textContent = r.ok ? '✓ Runtime restarted.' : '✗ Error: ' + (d.detail || JSON.stringify(d));
+  });
+  </script>
 </section>
 
 <!-- ── Provider And Model ─────────────────────────────────────────────── -->
@@ -71,8 +82,8 @@
     </label>
   </div>
   <div class="actions" style="margin-top:16px">
-    <button type="submit" class="button primary">Save and restart runtime</button>
-    <span class="field-note">Writes to environment-owned config.yaml, restarts the runtime, and clears session mappings.</span>
+    <button type="submit" class="button primary">Save</button>
+    <span class="field-note">Writes to environment-owned config.yaml (session mappings cleared on provider/model change). Restart the runtime (Runtime controls) to apply.</span>
   </div>
   </form>
   <div id="runtime-status" style="margin-top:8px"></div>
@@ -80,7 +91,7 @@
   document.getElementById('runtime-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const status = document.getElementById('runtime-status');
-    status.textContent = 'Saving and restarting…';
+    status.textContent = 'Saving…';
     const form = e.target;
     const payload = {
       provider: form.provider.value.trim() || null,
@@ -93,11 +104,71 @@
     });
     const d = await r.json();
     if (r.ok) {
-      status.textContent = d.changed ? '✓ Saved and runtime restarted. New sessions will use the updated config.' : '✓ No changes.';
+      status.textContent = d.changed ? '✓ Saved. Restart the runtime (Runtime controls) to apply.' : '✓ No changes.';
     } else {
       status.textContent = '✗ Error: ' + (d.detail || JSON.stringify(d));
     }
   });
+  </script>
+</section>
+
+<!-- ── MCP Servers ─────────────────────────────────────────────────────── -->
+<section class="card">
+  <h2>MCP servers</h2>
+  <p class="section-note">Connector registrations written to the environment-owned config.yaml. Non-secret structure only — host paths and OAuth stay in the environment. Add/remove/toggle here, then restart the runtime to apply.</p>
+  <table class="data-table">
+    <thead><tr><th>Name</th><th>Command</th><th>Env keys</th><th>Enabled</th><th></th></tr></thead>
+    <tbody>
+      {% for s in mcp_servers %}
+      <tr>
+        <td class="mono">{{ s.name }}</td>
+        <td class="mono" style="font-size:0.82rem">{{ s.command }} {{ s.args|join(' ') }}</td>
+        <td class="mono" style="font-size:0.82rem;color:var(--muted)">{{ s.env_keys|join(', ') or '—' }}</td>
+        <td><span class="status-pill {{ 'allowed' if s.enabled else 'blocked' }}">{{ 'On' if s.enabled else 'Off' }}</span></td>
+        <td>
+          <button class="button secondary mcp-toggle" data-name="{{ s.name }}" data-enabled="{{ '1' if s.enabled else '0' }}">{{ 'Disable' if s.enabled else 'Enable' }}</button>
+          <button class="button secondary mcp-remove" data-name="{{ s.name }}">Remove</button>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="field-note">No MCP servers configured.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <form id="mcp-add-form" style="margin-top:16px">
+    <div class="form-grid" style="grid-template-columns: repeat(3, minmax(0,1fr));">
+      <label><span>Name</span><input name="name" placeholder="e.g. google-gmail" required /></label>
+      <label><span>Command</span><input name="command" placeholder="e.g. npx" required /></label>
+      <label><span>Args (space-separated)</span><input name="args" placeholder="-y @scope/pkg" /></label>
+    </div>
+    <div class="actions" style="margin-top:16px">
+      <button type="submit" class="button primary">Add / update server</button>
+      <span class="field-note">Adding an existing name updates it. Restart the runtime to apply.</span>
+    </div>
+  </form>
+  <div id="mcp-status" style="margin-top:8px"></div>
+  <script>
+  (function() {
+    async function call(url, method, body) {
+      const opt = {method};
+      if (body) { opt.headers = {'Content-Type':'application/json'}; opt.body = JSON.stringify(body); }
+      const r = await fetch(url, opt); const d = await r.json();
+      const status = document.getElementById('mcp-status');
+      if (r.ok) { status.textContent = '✓ Saved. Restart the runtime to apply.'; setTimeout(() => location.reload(), 600); }
+      else { status.textContent = '✗ Error: ' + (d.detail || JSON.stringify(d)); }
+    }
+    document.querySelectorAll('.mcp-toggle').forEach(b => b.addEventListener('click', () =>
+      call('/api/admin/runtime/mcp/' + encodeURIComponent(b.dataset.name), 'PATCH', {enabled: b.dataset.enabled !== '1'})));
+    document.querySelectorAll('.mcp-remove').forEach(b => b.addEventListener('click', () => {
+      if (!confirm('Remove MCP server "' + b.dataset.name + '"?')) return;
+      call('/api/admin/runtime/mcp/' + encodeURIComponent(b.dataset.name), 'DELETE');
+    }));
+    document.getElementById('mcp-add-form').addEventListener('submit', (e) => {
+      e.preventDefault(); const f = e.target;
+      const args = f.args.value.trim() ? f.args.value.trim().split(/\s+/) : [];
+      call('/api/admin/runtime/mcp', 'POST', {name: f.name.value.trim(), command: f.command.value.trim(), args: args, enabled: true});
+    });
+  })();
   </script>
 </section>
 
@@ -121,7 +192,8 @@
     ⚠️ <strong>manual</strong> pauses every tool call waiting for an approval. Until an approval surface exists, tool calls will stall until they time out.
   </p>
   <div class="actions" style="margin-top:16px">
-    <button type="submit" class="button primary">Save &amp; restart runtime</button>
+    <button type="submit" class="button primary">Save</button>
+    <span class="field-note">Restart the runtime (Runtime controls) to apply.</span>
   </div>
   </form>
   <div id="approvals-status" style="margin-top:8px"></div>
@@ -136,8 +208,7 @@
       e.preventDefault();
       const status = document.getElementById('approvals-status');
       const mode = sel.value;
-      if (!confirm('Set tool approvals to "' + mode + '" and restart the runtime?')) return;
-      status.textContent = 'Saving and restarting runtime…';
+      status.textContent = 'Saving…';
       const r = await fetch('/api/admin/settings/approvals', {
         method: 'PATCH',
         headers: {'Content-Type': 'application/json'},
@@ -145,7 +216,7 @@
       });
       const d = await r.json();
       status.textContent = r.ok
-        ? (d.changed ? '✓ Saved. Mode is now ' + d.mode + ' (runtime restarted).' : '✓ No change — already ' + d.mode + '.')
+        ? (d.changed ? '✓ Saved. Mode is now ' + d.mode + '. Restart the runtime to apply.' : '✓ No change — already ' + d.mode + '.')
         : '✗ Error: ' + (d.detail || JSON.stringify(d));
     });
   })();

@@ -318,7 +318,7 @@ async def settings_page(request: Request):
     if g := _guard(request): return g
     import urllib.request
 
-    import yaml
+    import runtime_config as rc
 
     # Health checks — name / detail / ok
     profile_root = Path("/home/pi/.hermes/profiles/simplifyops")
@@ -347,19 +347,16 @@ async def settings_page(request: Request):
         {"name": "Postgres", "detail": "whitelist_app (unix socket)", "ok": db_ok},
     ]
 
-    # Runtime config (non-secret fields only)
-    runtime = {"provider": None, "model": None, "memory_url": None, "has_credentials": False}
-    try:
-        config_path = Path("/home/pi/.hermes/profiles/simplifyops/config.yaml")
-        if config_path.exists():
-            cfg = yaml.safe_load(config_path.read_text())
-            runtime["provider"] = cfg.get("model", {}).get("provider")
-            runtime["model"] = cfg.get("model", {}).get("default")
-            runtime["memory_url"] = cfg.get("memory", {}).get("url")
-            runtime["has_credentials"] = bool(cfg.get("model", {}).get("provider"))
-            runtime["approvals_mode"] = cfg.get("approvals", {}).get("mode")
-    except Exception:
-        pass
+    # Runtime config (non-secret, via the config-ownership service — story-44)
+    meta = rc.read_metadata()
+    runtime = {
+        "provider": meta["provider"],
+        "model": meta["model"],
+        "memory_url": meta["memory_url"],
+        "has_credentials": bool(meta["provider"]),
+        "approvals_mode": meta["approvals_mode"],
+    }
+    mcp_servers = meta["mcp_servers"]
 
     # Session cap + org default timezone
     settings = {}
@@ -376,7 +373,7 @@ async def settings_page(request: Request):
         "runtime_home_status": "Present" if profile_root.exists() else "Missing",
         "runtime_config_status": "Present" if (profile_root / "config.yaml").exists() else "Missing",
         "soul_file_status": "Present" if (profile_root / "SOUL.md").exists() else "Missing",
-        "base_config_status": "N/A (bare metal — no tracked template)",
+        "base_config_status": f"Present ({meta['env']})" if meta["base_exists"] else "Missing",
     }
 
     # Channels (non-secret)
@@ -412,6 +409,7 @@ async def settings_page(request: Request):
         "user": _user(request),
         "health": health,
         "runtime": runtime,
+        "mcp_servers": mcp_servers,
         "settings": settings,
         "files": files,
         "channels": channels,
