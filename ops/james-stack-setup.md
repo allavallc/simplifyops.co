@@ -18,7 +18,7 @@ The underlying agent runtime is **Hermes** (hermes-agent). James is not a custom
 |---|---|---|
 | Hermes | Agent runtime (runs James) | `/home/pi/.local/bin/hermes` |
 | `simplifyops` profile | James's config, memory, soul | `/home/pi/.hermes/profiles/simplifyops/` |
-| Soul file | James's identity/persona | `/home/pi/simplifyops/souls/james-bott.md` |
+| Soul file | James's identity/persona | `/home/pi/simplifyops/souls/soul.md` |
 | Hindsight | Long-term memory API | `http://localhost:8888` (systemd service) |
 | PostgreSQL | Hindsight's database backend | local, DB = `hindsight`, user = `pi` |
 | gateway.py | Telegram → Hermes bridge | `/home/pi/simplifyops/gateway/gateway.py` |
@@ -38,7 +38,7 @@ Key files inside the profile:
 
 ```
 config.yaml         — model, memory provider, approvals, compression, logging
-SOUL.md             — symlink → /home/pi/simplifyops/souls/james-bott.md
+SOUL.md             — symlink → /home/pi/simplifyops/souls/soul.md
 hindsight/
   config.json       — tells Hermes how to reach the Hindsight API
 sessions/           — conversation history
@@ -64,9 +64,9 @@ This tells Hermes's Hindsight plugin to POST to the local Hindsight API server r
 **Soul symlink:**
 ```
 /home/pi/.hermes/profiles/simplifyops/SOUL.md
-  → /home/pi/simplifyops/souls/james-bott.md
+  → /home/pi/simplifyops/souls/soul.md
 ```
-The soul lives in the `simplifyops` repo (version-controlled). The symlink keeps the profile in sync with the repo. **Never edit the copy inside `.hermes/` directly — always edit the source in `souls/james-bott.md`.**
+The soul lives in the `simplifyops` repo (version-controlled). The symlink keeps the profile in sync with the repo. **Never edit the copy inside `.hermes/` directly — always edit the source in `souls/soul.md`.**
 
 **Running Hermes one-shot (how the gateway calls it):**
 ```bash
@@ -214,7 +214,7 @@ journalctl -u james-gateway.service -n 30 --no-pager
 /home/pi/.hermes/profiles/simplifyops/config.yaml   — model, memory, agent config
 /home/pi/.hermes/profiles/simplifyops/SOUL.md       — symlink to soul file
 /home/pi/.hermes/profiles/simplifyops/hindsight/config.json — Hindsight plugin config
-/home/pi/simplifyops/souls/james-bott.md            — soul source of truth (edit here)
+/home/pi/simplifyops/souls/soul.md            — soul source of truth (edit here)
 /home/pi/simplifyops/gateway/gateway.py             — Telegram gateway script
 /home/pi/simplifyops/gateway/whitelist/whitelist.md — allowed Telegram user IDs
 /home/pi/.config/relay.env                          — all secrets (600 perms)
