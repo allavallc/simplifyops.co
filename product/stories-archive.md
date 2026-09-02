@@ -12,11 +12,13 @@ Completed / rejected / superseded / abandoned stories. The block below is genera
 | 29 | Story 29 - Remove the disabled legacy `people-whitelist/` Node app | Done (local, uncommitted). | `story-29-remove-people-whitelist.md` |
 | 31 | Story 31 - Complete the People page to spec (shared people_service + audit + safety + filters) | In progress (local). | `story-31-people-page-to-spec.md` |
 | 33 | Story 33 - Upgrade Hermes to the latest version, then re-run the full gate | DONE (2026-08-25) — upgrade verified healthy. | `story-33-upgrade-hermes-rerun-gate.md` |
+| 34 | Story 34 - Per-environment config editor (non-secret YAML + injected secrets → materialize → restart) | Proposed. | `story-34-env-owned-config-editor.md` |
 | 35 | Story 35 - Slim admin_api/main.py to a composition root (extract Jinja page routes) | Done (local, verified live — 2026-08-25). | `story-35-slim-admin-main-composition-root.md` |
 | 36 | Story 36 - Establish product/product-decisions/ (durable decision home) | In progress (branch `story-36-product-decisio… | `story-36-product-decisions-folder.md` |
 | 37 | Story 37 - Tracked story summaries + proposals + sync tool | In progress (branch `story-37-tracked-story-s… | `story-37-tracked-story-summaries.md` |
 | 38 | Story 38 - Feature-dev process doc + push-check scripts + infrastructure file | In progress (branch `story-38-feature-dev-pro… | `story-38-feature-dev-process.md` |
 | 39 | Story 39 - Align AGENTS.md to the whitelabel blueprint governance rules | Done (branch `story-39-align-agents-md`). | `story-39-align-agents-md.md` |
+| 44 | Story 44 - Config ownership + per-env editor (foundation) | Done (branch `story-44-config-ownership`). | `story-44-config-ownership.md` |
 | 49 | Story 49 - Boundary-contract docs | Done (branch `story-49-boundary-docs`). | `story-49-boundary-docs.md` |
 | 50 | Story 50 - Hermes upgrade protocol | Done (branch `story-50-hermes-protocol`). | `story-50-hermes-protocol.md` |
 <!-- END generated -->

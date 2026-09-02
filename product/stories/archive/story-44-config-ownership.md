@@ -1,9 +1,8 @@
 # Story 44 - Config ownership + per-env editor (foundation)
 
 ## Status
-**Approved (A/B/C decided 2026-08-29) — ready to build.** P1. Touches **live runtime config** (`⚠️`
-rule 8) and defines an **architecture boundary** (config ownership). **Absorbs/supersedes [[story-34]].**
-Build on branch `story-44-config-ownership`; full gate before merge.
+**Done (branch `story-44-config-ownership`).** P1. Config-ownership boundary + per-env editor.
+**Absorbs/supersedes [[story-34]].** Foundation for [[story-45]] (full Settings page).
 
 ## Problem (owner's actual pain)
 Editing runtime config per environment today means SSH-ing to the box and hand-editing
@@ -99,4 +98,21 @@ Rules the writer must honor (from the spec):
   no secret ever returned/logged and the tracked base untouched. Full gate; merged after approval+gate.
 
 ## Review
-_(after approval + gate)_
+Built as decided (A/B/C). `admin_api/runtime_config.py` is the single config-ownership service
+(seed-if-missing from tracked per-env base, redacted `read_metadata`, allowlisted structured `apply`
+with atomic write + `.bak`, MCP upsert/toggle/remove, explicit `restart_runtime`); `settings.py` and
+`pages.py` refactored onto it (removed two inline `config.yaml` readers). New endpoints:
+`POST /api/admin/runtime/restart` (the one shared restart) + `/api/admin/runtime/mcp[...]`; Settings
+page moved to the explicit-restart model + an MCP-servers section. `hermes/config.base.prod.yaml`
+tracked; PyYAML declared for CI.
+
+**brooks-review:** R2 duplication *reduced* (one config source); clean one-way seam; `read_metadata`
+redacts MCP `env` values (verified on live config — env keys only). 🟡 endpoint-level tests absent
+(need app+DB) — mitigated: all logic lives in `runtime_config`, which has 8 unit tests; matches the
+repo's existing no-endpoint-test pattern. **brooks-audit:** strengthens invariant 11 (env-owned
+config single seam); no cycles/god-module. No 🔴. **Gate:** rebased on `origin/main`; focused+full
+ruff clean; pytest 20 green; app imports (73 routes); `read_metadata` validated against the live
+config (4 MCP servers, values redacted). **Done.**
+
+**Deferred to [[story-45]]:** channels, Workspace OAuth, identity-file upload, admin-contact, the full
+sectioned Settings page, per-tool MCP policy.
