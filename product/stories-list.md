@@ -39,7 +39,7 @@ env-owned gitignored `config.yaml`, brooks + ruff + pytest gates.
 |----|----|----|----|----|
 | 40 ✎ | Expand ruff rule set | Quality gates | Ruff families `E,F,I,UP,B` @100/py3.11 (currently `E9,F,I`); fix resulting findings repo-wide | — |
 | 41 ✎ | CI workflow | CI & pre-push | `.github/workflows`: ruff + pytest + safe service checks (no Docker → systemd/health checks). Mark uncovered gates as **known gaps** | 40 |
-| 42 ✎ | Schemathesis API gate | Runtime/API gate | Schemathesis vs admin OpenAPI: read-only safe + disposable-DB write coverage | 40 |
+| 42 ⏸ | Schemathesis API gate | Runtime/API gate | **PARKED 2026-09-02** → `product/stories/parking-lot/` (see [[stories-parkinglot]]). Schemathesis vs admin OpenAPI: read-only safe + disposable-DB write coverage | 40 |
 | 43 ✎ 🧱 | Provider-neutral contracts pkg | Contracts / dependency direction | `simplifyops_contracts/`: settings, logging context, runtime msg/response, tool context, identity/workspace values — **no** FastAPI/MCP/provider imports | — |
 | 44 ✅ ⚠️ | Config ownership + editor | Config ownership | Tracked per-env `hermes/config.base.<env>.yaml` + env-owned `config.yaml` + seed-if-missing; `admin_api/runtime_config.py` (redacted metadata, allowlisted apply, MCP editing) + shared restart endpoint + Settings editor; **superseded/absorbed [[story-34]]** (per-env editor, secrets presence-only). Dep 43 dropped | — |
 | 45 ✎ 🧱 | Settings page to spec | Settings | Existing **[[story-32]]** — rebuild all sections, remove UI-only shells, field-save lifecycle + audit; Provider/Model drives 44 | 44 |
