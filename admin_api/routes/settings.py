@@ -1,16 +1,25 @@
 """
-Settings API — core runtime settings.
-GET /api/admin/settings/runtime      — read provider, model, memory URL
-PATCH /api/admin/settings/runtime    — save + restart runtime + clear sessions
-PATCH /api/admin/settings/session-health — save session message cap
+Settings API — runtime config + session settings.
+
+Config reads/writes go through the single config-ownership service `runtime_config` (story-44):
+env-owned `config.yaml`, tracked per-env base, allowlisted structured writes. Mutations here
+persist + return `restart_required`; the runtime reload is the explicit shared action
+`POST /api/admin/runtime/restart` (decision B) — nothing restarts implicitly.
+
+  GET  /api/admin/settings/state            — aggregate non-secret settings state (page/SPA)
+  GET  /api/admin/settings/runtime          — runtime config metadata (redacted)
+  PATCH/api/admin/settings/runtime          — provider/model/memory_url (allowlisted)
+  GET/PATCH /api/admin/settings/approvals   — tool approvals mode
+  GET/PATCH /api/admin/settings/session-health — session message cap (DB)
+  GET/PATCH /api/admin/settings/default-timezone — org default tz (DB)
+  POST /api/admin/runtime/restart           — the one shared explicit runtime restart
+  POST/PATCH/DELETE /api/admin/runtime/mcp  — MCP server registrations
 """
 
 import logging
-import subprocess
-import tempfile
 from pathlib import Path
 
-import yaml
+import runtime_config as rc
 from audit import log_audit
 from db import DEFAULT_SESSION_MESSAGE_CAP, DEFAULT_TIMEZONE, Db, get_setting, set_setting
 from deps import require_admin
@@ -19,35 +28,14 @@ from pydantic import BaseModel
 
 log = logging.getLogger("simplifyops-admin")
 router = APIRouter(prefix="/api/admin/settings")
+runtime_router = APIRouter(prefix="/api/admin/runtime")
 
-HERMES_CONFIG = Path("/home/pi/.hermes/profiles/simplifyops/config.yaml")
-
-
-def _read_config() -> dict:
-    if not HERMES_CONFIG.exists():
-        return {}
-    return yaml.safe_load(HERMES_CONFIG.read_text()) or {}
+APPROVALS_MODES = ("smart", "off", "manual")
 
 
-def _write_config(cfg: dict) -> None:
-    """Atomic write — write to temp file then rename."""
-    tmp = Path(tempfile.mktemp(dir=HERMES_CONFIG.parent, prefix=".config.yaml."))
-    try:
-        tmp.write_text(yaml.dump(cfg, default_flow_style=False, allow_unicode=True))
-        tmp.replace(HERMES_CONFIG)
-    except Exception:
-        tmp.unlink(missing_ok=True)
-        raise
-
-
-def _restart_runtime() -> None:
-    result = subprocess.run(
-        ["sudo", "/bin/systemctl", "restart", "simplifyops-agent-runtime.service"],
-        capture_output=True, text=True, timeout=30,
-    )
-    if result.returncode != 0:
-        raise RuntimeError(f"Runtime restart failed: {result.stderr[:200]}")
-    log.info("settings: runtime restarted")
+def _require_admin_authority(admin: dict) -> None:
+    if admin["authority"] not in ("super_admin", "admin"):
+        raise HTTPException(403, "admin_required")
 
 
 def _clear_session_mappings() -> None:
@@ -61,7 +49,7 @@ def _clear_session_mappings() -> None:
 
 @router.get("/state")
 async def get_state(admin=Depends(require_admin)):
-    """Aggregate non-secret settings state for the SPA — one call."""
+    """Aggregate non-secret settings state for the page — one call."""
     import urllib.request
 
     profile_root = Path("/home/pi/.hermes/profiles/simplifyops")
@@ -85,7 +73,7 @@ async def get_state(admin=Depends(require_admin)):
     except Exception:
         pass
 
-    cfg = _read_config()
+    meta = rc.read_metadata()
     return {
         "health": [
             {"name": "Admin API", "detail": "http://localhost:3000", "ok": True},
@@ -94,12 +82,14 @@ async def get_state(admin=Depends(require_admin)):
             {"name": "Postgres", "detail": "whitelist_app (unix socket)", "ok": db_ok},
         ],
         "runtime": {
-            "provider": cfg.get("model", {}).get("provider"),
-            "model": cfg.get("model", {}).get("default"),
-            "memory_url": cfg.get("memory", {}).get("url"),
-            "has_credentials": bool(cfg.get("model", {}).get("provider")),
+            "provider": meta["provider"],
+            "model": meta["model"],
+            "memory_url": meta["memory_url"],
+            "has_credentials": bool(meta["provider"]),
         },
-        "approvals_mode": cfg.get("approvals", {}).get("mode"),
+        "approvals_mode": meta["approvals_mode"],
+        "mcp_servers": meta["mcp_servers"],
+        "env": meta["env"],
         "session_message_cap": session_cap,
         "default_timezone": default_tz,
         "approvals_modes": list(APPROVALS_MODES),
@@ -108,14 +98,7 @@ async def get_state(admin=Depends(require_admin)):
 
 @router.get("/runtime")
 async def get_runtime(admin=Depends(require_admin)):
-    cfg = _read_config()
-    model_cfg = cfg.get("model", {})
-    memory_cfg = cfg.get("memory", {})
-    return {
-        "provider":   model_cfg.get("provider"),
-        "model":      model_cfg.get("default"),
-        "memory_url": memory_cfg.get("url"),
-    }
+    return rc.read_metadata()
 
 
 @router.get("/session-health")
@@ -126,7 +109,7 @@ async def get_session_health(admin=Depends(require_admin)):
     return {"session_message_cap": int(cap)}
 
 
-# ── Mutation ──────────────────────────────────────────────────────────────
+# ── Runtime config mutation (persist; restart is the separate shared action) ─
 
 class RuntimePatch(BaseModel):
     provider:   str | None = None
@@ -136,46 +119,35 @@ class RuntimePatch(BaseModel):
 
 @router.patch("/runtime")
 async def patch_runtime(body: RuntimePatch, admin=Depends(require_admin)):
-    if admin["authority"] not in ("super_admin", "admin"):
-        raise HTTPException(403, "admin_required")
+    _require_admin_authority(admin)
 
-    cfg = _read_config()
-    before = {
-        "provider": cfg.get("model", {}).get("provider"),
-        "model":    cfg.get("model", {}).get("default"),
-        "memory_url": cfg.get("memory", {}).get("url"),
-    }
-
-    cfg.setdefault("model", {})
-    cfg.setdefault("memory", {})
-
+    patch = {}
     if body.provider is not None:
-        cfg["model"]["provider"] = body.provider
+        patch["model.provider"] = body.provider
     if body.model is not None:
-        cfg["model"]["default"] = body.model
+        patch["model.default"] = body.model
     if body.memory_url is not None:
-        cfg["memory"]["url"] = body.memory_url
+        patch["memory.url"] = body.memory_url
+    if not patch:
+        return {"ok": True, "changed": False, "restart_required": False}
 
-    after = {
-        "provider": cfg["model"].get("provider"),
-        "model":    cfg["model"].get("default"),
-        "memory_url": cfg["memory"].get("url"),
-    }
+    try:
+        res = rc.apply(patch)
+    except rc.ConfigError as e:
+        raise HTTPException(400, str(e)) from None
 
-    if before == after:
-        return {"ok": True, "changed": False, "restarted": False}
-
-    _write_config(cfg)
-    log.info("settings: runtime config updated provider=%s model=%s", after["provider"], after["model"])
+    if not res["changed"]:
+        return {"ok": True, "changed": False, "restart_required": False}
 
     log_audit(admin["email"], "settings_runtime_update",
-              old_value=before, new_value=after)
+              old_value=res["before"], new_value=res["after"])
 
-    _restart_runtime()
-    _clear_session_mappings()
+    # provider/model change invalidates existing physical sessions
+    if "model.provider" in patch or "model.default" in patch:
+        _clear_session_mappings()
 
-    return {"ok": True, "changed": True, "restarted": True,
-            "after": after}
+    return {"ok": True, "changed": True, "restart_required": res["restart_required"],
+            "after": res["after"]}
 
 
 class SessionHealthPatch(BaseModel):
@@ -190,7 +162,6 @@ async def patch_session_health(body: SessionHealthPatch, admin=Depends(require_a
     with Db() as conn:
         with conn.cursor() as cur:
             old_val = int(get_setting(cur, "session_message_cap", DEFAULT_SESSION_MESSAGE_CAP))
-
         with conn.cursor() as cur:
             set_setting(cur, "session_message_cap", body.session_message_cap, admin["email"])
 
@@ -201,9 +172,7 @@ async def patch_session_health(body: SessionHealthPatch, admin=Depends(require_a
     return {"ok": True, "session_message_cap": body.session_message_cap}
 
 
-# ── Organization default timezone ───────────────────────────────────────────
-# A person with no timezone inherits this. Read live by the gateway from
-# admin_settings on every lookup — no runtime restart required.
+# ── Organization default timezone (applied live — no runtime restart) ────────
 
 class DefaultTimezonePatch(BaseModel):
     default_timezone: str
@@ -242,14 +211,8 @@ async def patch_default_timezone(body: DefaultTimezonePatch, admin=Depends(requi
 
 
 # ── Tool approvals (approvals.mode) ─────────────────────────────────────────
-# smart  = auto-run safe tools, pause only for risky ones
-# off    = never pause
-# manual = always pause for human approval (stalls tools until an approval UI exists)
-# Changing the mode restarts the runtime (config re-read) but does NOT clear
-# session mappings — the mode does not invalidate conversation continuity.
-
-APPROVALS_MODES = ("smart", "off", "manual")
-
+# smart = auto-run safe tools, pause only for risky ones; off = never pause;
+# manual = always pause (stalls tools until an approval UI exists). Change needs a restart.
 
 class ApprovalsPatch(BaseModel):
     mode: str
@@ -257,32 +220,85 @@ class ApprovalsPatch(BaseModel):
 
 @router.get("/approvals")
 async def get_approvals(admin=Depends(require_admin)):
-    cfg = _read_config()
-    return {"mode": cfg.get("approvals", {}).get("mode")}
+    return {"mode": rc.read_metadata()["approvals_mode"]}
 
 
 @router.patch("/approvals")
 async def patch_approvals(body: ApprovalsPatch, admin=Depends(require_admin)):
-    if admin["authority"] not in ("super_admin", "admin"):
-        raise HTTPException(403, "admin_required")
+    _require_admin_authority(admin)
 
     mode = body.mode.strip().lower()
     if mode not in APPROVALS_MODES:
         raise HTTPException(400, f"invalid_mode (allowed: {', '.join(APPROVALS_MODES)})")
 
-    cfg = _read_config()
-    before = cfg.get("approvals", {}).get("mode")
-    if before == mode:
-        return {"ok": True, "changed": False, "restarted": False, "mode": mode}
-
-    cfg.setdefault("approvals", {})
-    cfg["approvals"]["mode"] = mode
-    _write_config(cfg)
-    log.info("settings: approvals.mode %s -> %s", before, mode)
+    res = rc.apply({"approvals.mode": mode})
+    if not res["changed"]:
+        return {"ok": True, "changed": False, "restart_required": False, "mode": mode}
 
     log_audit(admin["email"], "settings_approvals_mode_update",
-              old_value={"mode": before}, new_value={"mode": mode})
+              old_value={"mode": res["before"]["approvals.mode"]}, new_value={"mode": mode})
 
-    _restart_runtime()
+    return {"ok": True, "changed": True, "restart_required": res["restart_required"], "mode": mode}
 
-    return {"ok": True, "changed": True, "restarted": True, "mode": mode}
+
+# ── Shared explicit runtime restart (decision B) ────────────────────────────
+
+@runtime_router.post("/restart")
+async def restart_runtime(admin=Depends(require_admin)):
+    _require_admin_authority(admin)
+    try:
+        rc.restart_runtime()
+    except Exception as e:
+        log_audit(admin["email"], "runtime_restart_failed", new_value={"error": str(e)[:200]})
+        raise HTTPException(500, "runtime_restart_failed") from None
+    log_audit(admin["email"], "runtime_restart", new_value={"service": rc.RESTART_SERVICE})
+    return {"ok": True, "restarted": True}
+
+
+# ── MCP server registrations (non-secret structure; env-owned live config) ──
+
+class McpServerBody(BaseModel):
+    name: str
+    command: str
+    args: list[str] | None = None
+    enabled: bool = True
+    env: dict[str, str] | None = None
+
+
+class McpTogglePatch(BaseModel):
+    enabled: bool
+
+
+@runtime_router.post("/mcp")
+async def upsert_mcp_server(body: McpServerBody, admin=Depends(require_admin)):
+    _require_admin_authority(admin)
+    try:
+        res = rc.set_mcp_server(body.name, command=body.command, args=body.args,
+                                enabled=body.enabled, env=body.env)
+    except rc.ConfigError as e:
+        raise HTTPException(400, str(e)) from None
+    log_audit(admin["email"], "settings_mcp_upsert", new_value={"server": body.name,
+              "enabled": body.enabled})
+    return {"ok": True, **res}
+
+
+@runtime_router.patch("/mcp/{name}")
+async def toggle_mcp_server(name: str, body: McpTogglePatch, admin=Depends(require_admin)):
+    _require_admin_authority(admin)
+    try:
+        res = rc.toggle_mcp_server(name, body.enabled)
+    except rc.ConfigError as e:
+        raise HTTPException(404, str(e)) from None
+    log_audit(admin["email"], "settings_mcp_toggle", new_value={"server": name, "enabled": body.enabled})
+    return {"ok": True, **res}
+
+
+@runtime_router.delete("/mcp/{name}")
+async def delete_mcp_server(name: str, admin=Depends(require_admin)):
+    _require_admin_authority(admin)
+    try:
+        res = rc.remove_mcp_server(name)
+    except rc.ConfigError as e:
+        raise HTTPException(404, str(e)) from None
+    log_audit(admin["email"], "settings_mcp_delete", new_value={"server": name})
+    return {"ok": True, **res}

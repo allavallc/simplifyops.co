@@ -17,6 +17,7 @@ from routes.messages import router as messages_router
 from routes.pages import router as pages_router
 from routes.people import router as people_router
 from routes.settings import router as settings_router
+from routes.settings import runtime_router
 from routes.tool_contexts import router as tool_contexts_router
 from schema_init import run_migrations
 from starlette.middleware.sessions import SessionMiddleware
@@ -47,6 +48,7 @@ app.include_router(inbox_router)
 app.include_router(activity_router)
 app.include_router(tool_contexts_router)
 app.include_router(settings_router)
+app.include_router(runtime_router)
 app.include_router(pages_router)  # server-rendered admin pages (routes/pages.py)
 
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")

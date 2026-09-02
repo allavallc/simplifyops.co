@@ -1,0 +1,71 @@
+# Hermes runtime — tracked STRUCTURAL base template (env: prod)
+#
+# This file is version-controlled and holds ONLY non-secret structural defaults. It is used to
+# SEED a fresh env's live config when `~/.hermes/profiles/simplifyops/config.yaml` is missing — it
+# NEVER overwrites an existing live config (see admin_api/runtime_config.py). Operators edit the
+# live, env-owned, gitignored config.yaml through the admin Settings UI; those edits never touch
+# this file.
+#
+# Do NOT put secrets, tokens, OAuth material, or host-specific absolute paths here. MCP server
+# `env` blocks (e.g. HOME) and provider credentials are host/env-specific and live only in the
+# env-owned config.yaml — this base leaves mcp_servers empty (managed via the Settings editor).
+#
+# Per-env: copy to config.base.local.yaml / config.base.staging.yaml and adjust as those envs exist.
+
+_config_version: 39
+
+model:
+  provider: openai-codex          # operator-editable via Settings
+  default: gpt-5.5                 # operator-editable via Settings
+  base_url: ""                    # optional; blank = provider default
+
+memory:
+  provider: hindsight
+  memory_enabled: true
+  user_profile_enabled: true
+
+approvals:
+  mode: smart                     # smart | off | manual
+  timeout: 300
+
+agent:
+  max_turns: 40
+  gateway_timeout: 120
+  api_max_retries: 3
+  restart_drain_timeout: 30
+  reasoning_effort: medium
+  tool_use_enforcement: auto
+  verify_on_stop: true
+  verbose: false
+
+compression:
+  enabled: true
+  threshold: 0.8
+  target_ratio: 0.5
+  protect_last_n: 4
+
+sessions:
+  auto_prune: true
+  retention_days: 30
+
+gateway:
+  strict: true
+
+logging:
+  level: INFO
+  max_size_mb: 20
+  backup_count: 5
+
+tools:
+  tool_search:
+    enabled: true
+    max_search_limit: 50
+    search_default_limit: 10
+    threshold_pct: 60
+
+# MCP servers are env-owned (host-specific paths/OAuth). Add/remove/toggle them from the
+# Settings → runtime editor; they are written to the live config.yaml, never to this base.
+mcp_servers: {}
+
+plugins:
+  enabled: []
