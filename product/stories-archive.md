@@ -24,4 +24,5 @@ Completed / rejected / superseded / abandoned stories. The block below is genera
 | 60 | Story 60 - Soul file: generic name + Settings download/upload | Done (branch `story-60-soul-file-management`). | `story-60-soul-file-management.md` |
 | 61 | Story 61 - Settings: Admin Contact section (real) | Done. | `story-61-settings-admin-contact.md` |
 | 62 | Story 62 - Fix James's reply mojibake (UTF-8 decoded as Latin-1) | Done. | `story-62-fix-reply-encoding.md` |
+| 63 | Story 63 - Settings: honest Channels + Tools (remove UI-only shells) | Done. | `story-63-settings-channels-tools.md` |
 <!-- END generated -->
