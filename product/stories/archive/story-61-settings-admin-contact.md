@@ -1,7 +1,7 @@
 # Story 61 - Settings: Admin Contact section (real)
 
 ## Status
-**Done (branch `story-61-settings-admin-contact`).** First shippable increment of [[story-45]]
+**Done.** First shippable increment of [[story-45]]
 (Settings page to spec) — replace a UI-only shell with a working, audited field-save section.
 
 ## Goal
@@ -31,4 +31,9 @@ audited, following the field-save lifecycle.
   audits; invalid/duplicate selections are rejected. Full gate; merged.
 
 ## Review
-_(filled during the gate)_
+`active_admin_emails` keeps people reads in `people_service` (single source — reinforces rule 9);
+both the dropdown and save-validation use it. Endpoints validate membership + secondary≠primary,
+persist to `admin_settings`, audit before/after; no new table. brooks-review/audit: clean seam, no
+god-module/cycles/dup; only non-secret emails exposed, admin-gated. 🟡 no unit test (thin DB CRUD +
+membership check; needs live DB — matches repo pattern). No 🔴. **Gate:** rebased on `origin/main`;
+full ruff clean; pytest 26 green; app imports (77 routes, admin-contact GET/PATCH wired). **Done.**

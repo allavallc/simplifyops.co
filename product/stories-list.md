@@ -49,6 +49,7 @@ env-owned gitignored `config.yaml`, brooks + ruff + pytest gates.
 | 49 ✅ | Boundary-contract docs | Boundary contracts | `plan-architecture/feature-details-if-needed/durable-message-workflow.md`, `plan-architecture/feature-details-if-needed/channel-message-tracking.md`, `docs/mcp/agent-mcp-master-doc.md` — document each boundary per the contract checklist (build-spec docs relocated to `plan-architecture/` 2026-08-27; MCP doc kept in `docs/mcp/` per law) | 36 |
 | 50 ✅ | Hermes upgrade protocol | Runtime upgrade | `plan-architecture/feature-details-if-needed/update-hermes-protocol-2026-08-27.md` (master, rewritten to our stack) + AGENTS.md/decisions-log updates; patch script **deferred** (no current patches — see [[stories-parkinglot]]); formalizes the 0.19→0.20.5 run + [[hermes-upgrade-pin-workflow]] | — |
 | 60 ✅ | Soul file rename + Settings download/upload | Identity/soul | Rename `souls/james-bott.md` → `souls/soul.md` (+ symlink/refs, `souls/README.md`); `admin_api/soul_file.py` + super-admin download/upload (validate, restart-on-upload) + Settings UI; carved from [[story-46]] | 44 |
+| 61 ✅ | Settings: Admin Contact section | Settings | Real primary/secondary admin-contact (active-admin selects, field-save + audit, `admin_settings`); removes a UI-only shell; first increment of [[story-45]] | 44 |
 
 ## P2 — Larger restructures (own planning; sequence after P0/P1)
 | ID | Title | Blueprint area | Scope | Deps |
