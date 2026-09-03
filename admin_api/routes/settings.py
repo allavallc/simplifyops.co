@@ -19,6 +19,7 @@ persist + return `restart_required`; the runtime reload is the explicit shared a
 import logging
 from pathlib import Path
 
+import people_service
 import runtime_config as rc
 import soul_file as sf
 from audit import log_audit
@@ -215,6 +216,54 @@ async def upload_identity_file(body: SoulUpload, admin=Depends(require_admin)):
         restarted = False
         log.error("identity-file upload: runtime restart failed: %s", e)
     return {"ok": True, "bytes": meta["bytes"], "restarted": restarted}
+
+
+# ── Admin contact (primary/secondary from active admins; stored in admin_settings) ──
+
+CONTACT_PRIMARY_KEY = "admin_contact_primary"
+CONTACT_SECONDARY_KEY = "admin_contact_secondary"
+
+
+class AdminContactPatch(BaseModel):
+    primary: str
+    secondary: str | None = None
+
+
+@router.get("/admin-contact")
+async def get_admin_contact(admin=Depends(require_admin)):
+    with Db() as conn:
+        options = [r["person_email"] for r in people_service.active_admin_emails(conn)]
+        with conn.cursor() as cur:
+            primary = get_setting(cur, CONTACT_PRIMARY_KEY, None) or None
+            secondary = get_setting(cur, CONTACT_SECONDARY_KEY, None) or None
+    return {"primary": primary, "secondary": secondary, "options": options}
+
+
+@router.patch("/admin-contact")
+async def patch_admin_contact(body: AdminContactPatch, admin=Depends(require_admin)):
+    _require_admin_authority(admin)
+    primary = (body.primary or "").strip()
+    secondary = (body.secondary or "").strip() or None
+
+    with Db() as conn:
+        valid = {r["person_email"] for r in people_service.active_admin_emails(conn)}
+        if primary not in valid:
+            raise HTTPException(400, "primary_must_be_active_admin")
+        if secondary is not None and secondary not in valid:
+            raise HTTPException(400, "secondary_must_be_active_admin")
+        if secondary is not None and secondary == primary:
+            raise HTTPException(400, "secondary_must_differ_from_primary")
+
+        with conn.cursor() as cur:
+            old = {"primary": get_setting(cur, CONTACT_PRIMARY_KEY, None) or None,
+                   "secondary": get_setting(cur, CONTACT_SECONDARY_KEY, None) or None}
+        with conn.cursor() as cur:
+            set_setting(cur, CONTACT_PRIMARY_KEY, primary, admin["email"])
+            set_setting(cur, CONTACT_SECONDARY_KEY, secondary or "", admin["email"])
+
+    log_audit(admin["email"], "settings_admin_contact_update",
+              old_value=old, new_value={"primary": primary, "secondary": secondary})
+    return {"ok": True, "primary": primary, "secondary": secondary}
 
 
 # ── Organization default timezone (applied live — no runtime restart) ────────

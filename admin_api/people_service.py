@@ -71,6 +71,18 @@ def count_active_admins(conn) -> int:
         return cur.fetchone()[0]
 
 
+def active_admin_emails(conn) -> list[dict]:
+    """Active admin/super-admin people, for admin-contact selection. Non-secret (email + authority)."""
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute("""
+            SELECT person_email, authority FROM people
+            WHERE deleted_at IS NULL AND authority IN ('admin','super_admin')
+              AND (status IS NULL OR status = 'allowed')
+            ORDER BY person_email
+        """)
+        return cur.fetchall()
+
+
 def load_person(conn, person_id: int) -> dict:
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute("SELECT * FROM people WHERE id = %s", (person_id,))

@@ -318,6 +318,7 @@ async def settings_page(request: Request):
     if g := _guard(request): return g
     import urllib.request
 
+    import people_service
     import runtime_config as rc
 
     # Health checks — name / detail / ok
@@ -399,8 +400,15 @@ async def settings_page(request: Request):
                     "token_expiry": row["token_expiry"].strftime("%Y-%m-%d %H:%M UTC") if row["token_expiry"] else None,
                 }
 
-    # Admin contact (placeholder until admin_contact_settings table is built)
-    admin_contact = {"primary": request.session.get("admin_email"), "secondary": None}
+    # Admin contact (primary/secondary from active admins; stored in admin_settings)
+    with Db() as conn:
+        contact_options = [r["person_email"] for r in people_service.active_admin_emails(conn)]
+        with conn.cursor() as cur:
+            admin_contact = {
+                "primary": get_setting(cur, "admin_contact_primary", None) or None,
+                "secondary": get_setting(cur, "admin_contact_secondary", None) or None,
+                "options": contact_options,
+            }
 
     # Tools summary (placeholder)
     tools = {"mcp_health": None, "active_count": None}
