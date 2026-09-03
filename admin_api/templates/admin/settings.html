@@ -352,14 +352,13 @@
 <!-- ── Channels ───────────────────────────────────────────────────────── -->
 <section class="card">
   <h2>Channels</h2>
-  <p class="section-note">Per-channel enablement, identifiers, and session cap overrides.</p>
+  <p class="section-note">Inbound channels and their status. Session caps use the global default (see Session health). Per-channel overrides and additional channels (email, Discord, Google Chat) are planned — story 54.</p>
   <table class="data-table">
     <thead>
       <tr>
         <th>Channel</th>
         <th>Status</th>
         <th>Public identifier</th>
-        <th>Session cap</th>
         <th>Secret presence</th>
       </tr>
     </thead>
@@ -368,28 +367,10 @@
         <td>Telegram</td>
         <td><span class="status-pill allowed">Active</span></td>
         <td>{{ channels.telegram.bot_username or '—' }}</td>
-        <td><input type="number" min="1" placeholder="Global default" disabled style="width:110px" /></td>
         <td>{{ 'Present' if channels.telegram.has_token else 'Not set' }}</td>
-      </tr>
-      <tr>
-        <td>Email / Gmail</td>
-        <td><span class="status-pill blocked">Not configured</span></td>
-        <td>—</td>
-        <td><input type="number" min="1" placeholder="200" disabled style="width:110px" /></td>
-        <td>—</td>
-      </tr>
-      <tr>
-        <td>Phone</td>
-        <td><span class="status-pill blocked">Not configured</span></td>
-        <td>—</td>
-        <td><input type="number" min="1" placeholder="50" disabled style="width:110px" /></td>
-        <td>—</td>
       </tr>
     </tbody>
   </table>
-  <div class="actions" style="margin-top:16px">
-    <button class="button secondary" disabled title="Backend not yet implemented">Save channel settings</button>
-  </div>
 </section>
 
 <!-- ── Workspace Access ───────────────────────────────────────────────── -->
@@ -475,15 +456,11 @@
 <!-- ── Tools Summary ─────────────────────────────────────────────────── -->
 <section class="card">
   <h2>Tools</h2>
-  <p class="section-note">Hermes toolsets and MCP connectors. Full tool editing is on the Tools page.</p>
+  <p class="section-note">MCP connectors and Hermes toolsets. Manage MCP servers under Runtime (above); full tool editing is on the Tools page.</p>
   <div class="detail-grid">
     <div class="detail-card">
-      <span>MCP health</span>
-      <strong>{{ tools.mcp_health or 'Not checked' }}</strong>
-    </div>
-    <div class="detail-card">
-      <span>Active toolsets</span>
-      <strong>{{ tools.active_count or '—' }}</strong>
+      <span>MCP servers</span>
+      <strong>{{ tools.mcp_enabled }} enabled / {{ tools.mcp_total }} total</strong>
     </div>
   </div>
   <div class="actions" style="margin-top:16px">
