@@ -42,4 +42,11 @@ larger [[story-46]] (which still covers the soul/skills/knowledge restructure + 
   no write. Full gate; merged.
 
 ## Review
-_(filled during the gate)_
+Rename done (symlink repointed, verified valid + readable; content unchanged). `soul_file.py` is a
+clean seam (parallels `runtime_config`): validate (empty/oversize/secret-like) + atomic write; content
+**never logged** — audit records only `filename`/`bytes`/`sha256`. Endpoints super-admin-gated; upload
+validates → writes → audits → restarts runtime (returns `restarted` flag; save survives a failed
+restart). UI wired into the previously-disabled placeholder (download link + client-side file read →
+JSON upload). **brooks-review/audit:** no god-module, no cycles, no duplication; secrets can't leak via
+logs/audit. No 🔴/🟡. **Gate:** rebased on `origin/main`; focused+full ruff clean; pytest 26 green
+(6 new); app imports (75 routes, both identity-file routes wired). **Done.**

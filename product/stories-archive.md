@@ -21,4 +21,5 @@ Completed / rejected / superseded / abandoned stories. The block below is genera
 | 44 | Story 44 - Config ownership + per-env editor (foundation) | Done (branch `story-44-config-ownership`). | `story-44-config-ownership.md` |
 | 49 | Story 49 - Boundary-contract docs | Done (branch `story-49-boundary-docs`). | `story-49-boundary-docs.md` |
 | 50 | Story 50 - Hermes upgrade protocol | Done (branch `story-50-hermes-protocol`). | `story-50-hermes-protocol.md` |
+| 60 | Story 60 - Soul file: generic name + Settings download/upload | Done (branch `story-60-soul-file-management`). | `story-60-soul-file-management.md` |
 <!-- END generated -->
