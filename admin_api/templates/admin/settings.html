@@ -436,16 +436,40 @@
   <div class="form-grid">
     <label>
       <span>Primary contact</span>
-      <input value="{{ admin_contact.primary or '—' }}" disabled />
+      <select id="contact-primary">
+        {% for opt in admin_contact.options %}
+        <option value="{{ opt }}" {{ 'selected' if opt == admin_contact.primary else '' }}>{{ opt }}</option>
+        {% endfor %}
+      </select>
     </label>
     <label>
-      <span>Secondary contact</span>
-      <input value="{{ admin_contact.secondary or 'None' }}" disabled />
+      <span>Secondary contact (optional)</span>
+      <select id="contact-secondary">
+        <option value="">None</option>
+        {% for opt in admin_contact.options %}
+        <option value="{{ opt }}" {{ 'selected' if opt == admin_contact.secondary else '' }}>{{ opt }}</option>
+        {% endfor %}
+      </select>
     </label>
   </div>
   <div class="actions" style="margin-top:16px">
-    <button class="button secondary" disabled title="Backend not yet implemented">Save</button>
+    <button id="admin-contact-save" class="button primary">Save</button>
   </div>
+  <div id="admin-contact-status" style="margin-top:8px"></div>
+  <script>
+  document.getElementById('admin-contact-save').addEventListener('click', async () => {
+    const status = document.getElementById('admin-contact-status');
+    const primary = document.getElementById('contact-primary').value;
+    const secondary = document.getElementById('contact-secondary').value || null;
+    status.textContent = 'Saving…';
+    const r = await fetch('/api/admin/settings/admin-contact', {
+      method: 'PATCH', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({primary: primary, secondary: secondary}),
+    });
+    const d = await r.json();
+    status.textContent = r.ok ? '✓ Saved.' : '✗ Error: ' + (d.detail || JSON.stringify(d));
+  });
+  </script>
 </section>
 
 <!-- ── Tools Summary ─────────────────────────────────────────────────── -->
