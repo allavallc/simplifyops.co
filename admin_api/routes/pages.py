@@ -410,8 +410,11 @@ async def settings_page(request: Request):
                 "options": contact_options,
             }
 
-    # Tools summary (placeholder)
-    tools = {"mcp_health": None, "active_count": None}
+    # Tools summary — real MCP server counts from the runtime config metadata
+    tools = {
+        "mcp_total": len(mcp_servers),
+        "mcp_enabled": sum(1 for s in mcp_servers if s.get("enabled")),
+    }
 
     return render(request, "admin/settings.html", {
         "user": _user(request),
