@@ -23,4 +23,5 @@ Completed / rejected / superseded / abandoned stories. The block below is genera
 | 50 | Story 50 - Hermes upgrade protocol | Done (branch `story-50-hermes-protocol`). | `story-50-hermes-protocol.md` |
 | 60 | Story 60 - Soul file: generic name + Settings download/upload | Done (branch `story-60-soul-file-management`). | `story-60-soul-file-management.md` |
 | 61 | Story 61 - Settings: Admin Contact section (real) | Done. | `story-61-settings-admin-contact.md` |
+| 62 | Story 62 - Fix James's reply mojibake (UTF-8 decoded as Latin-1) | Done. | `story-62-fix-reply-encoding.md` |
 <!-- END generated -->

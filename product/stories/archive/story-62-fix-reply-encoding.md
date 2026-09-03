@@ -1,7 +1,7 @@
 # Story 62 - Fix James's reply mojibake (UTF-8 decoded as Latin-1)
 
 ## Status
-**Done (branch `story-62-fix-reply-encoding`).** Bugfix — user-facing.
+**Done.** Bugfix — user-facing.
 
 ## Symptom
 Every James reply with "smart" punctuation came out garbled to real users (e.g. John): curly quotes
@@ -35,4 +35,8 @@ default mojibakes smart punctuation, and that the `utf-8` override restores it. 
   smart punctuation renders correctly. Merged.
 
 ## Review
-_(filled during the gate)_
+One-line fix at the `hermes_client` runtime boundary (rule 10) with a rationale comment; 3 regression
+tests pin the mechanism (text/event-stream→ISO-8859-1 default, default mojibakes, utf-8 restores).
+brooks-review/audit: minimal, correct, no god-module/coupling/dup. No 🔴/🟡. **Gate:** rebased on
+`origin/main`; full ruff clean; pytest 29 green (3 new). Deployed by restarting
+`simplifyops-gateway.service`. **Done.**
