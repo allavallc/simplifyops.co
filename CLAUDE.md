@@ -151,7 +151,7 @@ simplifyops.co/
 ├── skills/
 │   └── skill-billing.md        # Quick-ref skill pointing to billing/
 ├── souls/
-│   └── james-bott.md           # CEO persona definition
+│   └── soul.md           # CEO persona definition
 ├── ops/
 │   └── persistent-mcp-setup.md # ATTEMPTED + FAILED — HTTP MCP transport docs
 ├── invoices/                   # GITIGNORED — generated PDFs

@@ -5,9 +5,9 @@ Prioritized, **selective/incremental** adoption of the genericized whitelabel bl
 document: every blueprint area is mapped to a story below (done, pending, new, or parked).
 
 **Whitelabel mapping:** `<agent name>` → **James**; `agent_runtime` → `simplifyops_runtime`;
-`agent_brain` (governance DB) → `whitelist_app`; `agent-soul` → `souls/james-bott.md`; reuse existing
+`agent_brain` (governance DB) → `whitelist_app`; `agent-soul` → `souls/soul.md`; reuse existing
 names where they exist. **Defaults (approved):** keep current `gateway`+`hermes_client` (no runtime-bridge
-yet); **skip Docker** (native/systemd); **MCP work needs Anthony** (CLAUDE.md).
+yet); **skip Docker** (native/systemd); **MCP work is a normal architecture decision** (CLAUDE.md).
 
 **Flags:** 🔴 needs Anthony/owner sign-off · ⚠️ touches live/shared infra (rule 8) · 🧱 large/multi-part.
 **Status:** ✅ done · ▶ pending (has full story) · ✎ new (needs full story before impl).
@@ -43,11 +43,12 @@ env-owned gitignored `config.yaml`, brooks + ruff + pytest gates.
 | 43 ✎ 🧱 | Provider-neutral contracts pkg | Contracts / dependency direction | `simplifyops_contracts/`: settings, logging context, runtime msg/response, tool context, identity/workspace values — **no** FastAPI/MCP/provider imports | — |
 | 44 ✅ ⚠️ | Config ownership + editor | Config ownership | Tracked per-env `hermes/config.base.<env>.yaml` + env-owned `config.yaml` + seed-if-missing; `admin_api/runtime_config.py` (redacted metadata, allowlisted apply, MCP editing) + shared restart endpoint + Settings editor; **superseded/absorbed [[story-34]]** (per-env editor, secrets presence-only). Dep 43 dropped | — |
 | 45 ✎ 🧱 | Settings page to spec | Settings | Existing **[[story-32]]** — rebuild all sections, remove UI-only shells, field-save lifecycle + audit; Provider/Model drives 44 | 44 |
-| 46 ✎ 🧱 | Soul/skills/knowledge + self-knowledge | Identity/soul/skills/knowledge | Restructure `souls/james-bott.md` → `soul/` + `knowledge/` + `governance/` policy dir; `scripts/build_agent_self_knowledge.py` (generate/check) + `knowledge/about-myself/sources.md`; authority-filtered | 43 |
+| 46 ✎ 🧱 | Soul/skills/knowledge + self-knowledge | Identity/soul/skills/knowledge | Restructure `souls/soul.md` → `soul/` + `knowledge/` + `governance/` policy dir; `scripts/build_agent_self_knowledge.py` (generate/check) + `knowledge/about-myself/sources.md`; authority-filtered | 43 |
 | 47 ✎ | Migrations + schema_init | Persistence/schema | `migrations/` + `admin_api/schema_init.py` replacing schema-on-startup; forward-only, repair-safe, backup-on-apply | — |
 | 48 ⏸ 🧱 | Companies + company-access | People/companies model | **PARKED 2026-08-27** (see [[stories-parkinglot]]) — do the rest of P1 first, come back later. `companies`, `person_company_access`, `identity_claims` schema + shared service + admin UI; completes People spec (the deferred [[story-31]] follow-up) | 47 |
 | 49 ✅ | Boundary-contract docs | Boundary contracts | `plan-architecture/feature-details-if-needed/durable-message-workflow.md`, `plan-architecture/feature-details-if-needed/channel-message-tracking.md`, `docs/mcp/agent-mcp-master-doc.md` — document each boundary per the contract checklist (build-spec docs relocated to `plan-architecture/` 2026-08-27; MCP doc kept in `docs/mcp/` per law) | 36 |
 | 50 ✅ | Hermes upgrade protocol | Runtime upgrade | `plan-architecture/feature-details-if-needed/update-hermes-protocol-2026-08-27.md` (master, rewritten to our stack) + AGENTS.md/decisions-log updates; patch script **deferred** (no current patches — see [[stories-parkinglot]]); formalizes the 0.19→0.20.5 run + [[hermes-upgrade-pin-workflow]] | — |
+| 60 ✅ | Soul file rename + Settings download/upload | Identity/soul | Rename `souls/james-bott.md` → `souls/soul.md` (+ symlink/refs, `souls/README.md`); `admin_api/soul_file.py` + super-admin download/upload (validate, restart-on-upload) + Settings UI; carved from [[story-46]] | 44 |
 
 ## P2 — Larger restructures (own planning; sequence after P0/P1)
 | ID | Title | Blueprint area | Scope | Deps |

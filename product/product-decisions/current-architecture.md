@@ -101,7 +101,7 @@ _(The legacy `people-whitelist.service` Node app has been **removed** — people
 | `/home/pi/simplifyops/admin_api/` | FastAPI control plane |
 | `/home/pi/simplifyops/gateway/gateway.py` | Telegram adapter + durable worker |
 | `/home/pi/.hermes/profiles/simplifyops/` | Hermes profile root |
-| `/home/pi/.hermes/profiles/simplifyops/SOUL.md` | Agent soul (edit source: `souls/james-bott.md`) |
+| `/home/pi/.hermes/profiles/simplifyops/SOUL.md` | Agent soul (edit source: `souls/soul.md`) |
 | `/home/pi/.hermes/profiles/simplifyops/config.yaml` | Hermes model/memory/MCP config |
 | `/home/pi/.config/relay.env` | Shared secrets (bot tokens, API keys, Google OAuth) |
 | `/home/pi/.config/simplifyops-runtime.env` | Isolated env for agent runtime (no Telegram token) |

@@ -314,9 +314,39 @@
     </div>
   </div>
   <div class="actions" style="margin-top:16px">
-    <button class="button secondary" disabled title="Super admin only — backend not yet implemented">Upload identity file</button>
-    <span class="field-note">Super admin only. Runtime restart required after upload before SOUL.md updates.</span>
+    <a class="button secondary" href="/api/admin/settings/identity-file/download">Download soul file</a>
+    <label class="button secondary" style="cursor:pointer">Choose file…<input id="soul-file-input" type="file" accept=".md,.markdown,.txt,text/markdown,text/plain" style="display:none"></label>
+    <button id="soul-upload-btn" class="button primary" disabled>Upload &amp; restart runtime</button>
+    <span class="field-note">Super admin only. The soul file is the agent's personality — download, edit, re-upload. Uploading replaces it and restarts the runtime.</span>
   </div>
+  <div id="soul-upload-status" style="margin-top:8px"></div>
+  <script>
+  (function() {
+    const input = document.getElementById('soul-file-input');
+    const btn = document.getElementById('soul-upload-btn');
+    const status = document.getElementById('soul-upload-status');
+    let picked = null;
+    input.addEventListener('change', () => {
+      picked = input.files[0] || null;
+      btn.disabled = !picked;
+      status.textContent = picked ? ('Selected: ' + picked.name) : '';
+    });
+    btn.addEventListener('click', async () => {
+      if (!picked) return;
+      if (!confirm('Replace the agent soul with "' + picked.name + '" and restart the runtime?')) return;
+      const content = await picked.text();
+      status.textContent = 'Uploading and restarting…';
+      const r = await fetch('/api/admin/settings/identity-file/upload', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({content: content, filename: picked.name}),
+      });
+      const d = await r.json();
+      status.textContent = r.ok
+        ? '✓ Uploaded (' + d.bytes + ' bytes). ' + (d.restarted ? 'Runtime restarted.' : 'Runtime restart FAILED — restart manually.')
+        : '✗ Error: ' + (d.detail || JSON.stringify(d));
+    });
+  })();
+  </script>
 </section>
 
 <!-- ── Channels ───────────────────────────────────────────────────────── -->

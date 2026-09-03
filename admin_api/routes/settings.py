@@ -20,10 +20,12 @@ import logging
 from pathlib import Path
 
 import runtime_config as rc
+import soul_file as sf
 from audit import log_audit
 from db import DEFAULT_SESSION_MESSAGE_CAP, DEFAULT_TIMEZONE, Db, get_setting, set_setting
 from deps import require_admin
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 
 log = logging.getLogger("simplifyops-admin")
@@ -36,6 +38,11 @@ APPROVALS_MODES = ("smart", "off", "manual")
 def _require_admin_authority(admin: dict) -> None:
     if admin["authority"] not in ("super_admin", "admin"):
         raise HTTPException(403, "admin_required")
+
+
+def _require_super_admin(admin: dict) -> None:
+    if admin["authority"] != "super_admin":
+        raise HTTPException(403, "super_admin_required")
 
 
 def _clear_session_mappings() -> None:
@@ -170,6 +177,44 @@ async def patch_session_health(body: SessionHealthPatch, admin=Depends(require_a
               new_value={"session_message_cap": body.session_message_cap})
 
     return {"ok": True, "session_message_cap": body.session_message_cap}
+
+
+# ── Identity file (soul) download / upload (super-admin) ────────────────────
+# The soul file IS the agent's personality (loaded verbatim as SOUL.md). Upload replaces
+# souls/soul.md and restarts the runtime so the new soul loads. Content is never logged.
+
+class SoulUpload(BaseModel):
+    content: str
+    filename: str | None = None
+
+
+@router.get("/identity-file/download")
+async def download_identity_file(admin=Depends(require_admin)):
+    _require_super_admin(admin)
+    return PlainTextResponse(
+        sf.read(), media_type="text/markdown",
+        headers={"Content-Disposition": 'attachment; filename="soul.md"'},
+    )
+
+
+@router.post("/identity-file/upload")
+async def upload_identity_file(body: SoulUpload, admin=Depends(require_admin)):
+    _require_super_admin(admin)
+    try:
+        meta = sf.write_atomic(body.content)
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from None
+
+    log_audit(admin["email"], "settings_identity_file_upload",
+              new_value={"filename": body.filename, "bytes": meta["bytes"], "sha256": meta["sha256"]})
+
+    restarted = True
+    try:
+        rc.restart_runtime()  # owner: restart on upload so the new soul is loaded
+    except Exception as e:
+        restarted = False
+        log.error("identity-file upload: runtime restart failed: %s", e)
+    return {"ok": True, "bytes": meta["bytes"], "restarted": restarted}
 
 
 # ── Organization default timezone (applied live — no runtime restart) ────────
