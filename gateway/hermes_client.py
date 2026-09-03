@@ -158,13 +158,18 @@ def call_hermes(prompt: str, user_id: str = None, channel: str = None,
     def _chat_stream(sid):
         # Liveness streaming (story-17): read timeout = idle timeout between chunks;
         # no total wall-clock cap, so a long-but-live turn is never killed.
-        return requests.post(
+        resp = requests.post(
             f"{AGENT_API_URL}/api/sessions/{sid}/chat/stream",
             headers=_agent_api_headers(),
             json={"message": prompt, "system_message": system_message},
             stream=True,
             timeout=(AGENT_API_CONNECT_TIMEOUT, AGENT_API_IDLE_TIMEOUT),
         )
+        # SSE (`text/event-stream`) carries no charset, so `requests` defaults r.encoding to
+        # ISO-8859-1 (RFC 2616) — then iter_lines(decode_unicode=True) would mis-decode the UTF-8
+        # reply as Latin-1, mojibake-ing curly quotes/apostrophes/em-dashes (story-62). Force UTF-8.
+        resp.encoding = "utf-8"
+        return resp
 
     try:
         r = _chat_stream(session_id)
