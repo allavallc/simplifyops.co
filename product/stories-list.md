@@ -35,15 +35,16 @@ env-owned gitignored `config.yaml`, brooks + ruff + pytest gates.
 | 39 ✎ | Align AGENTS.md to blueprint rules | Agent-governance rules | Fold in ask-first, plan-before-slice, gate order (Brooks→ruff→pytest→…), product-model + coordination rules; reconcile with existing rules 1–11 | 36,37,38 |
 
 ## P1 — Quality gates + core architecture gaps (fit now)
+**✅ P1 complete (2026-09-04):** all consumed/valuable items shipped; 42/43/46 parked as premature/ahead-of-consumption, 48 parked. Remaining backlog (P2/P3) is need-driven.
 | ID | Title | Blueprint area | Scope | Deps |
 |----|----|----|----|----|
 | 40 ✎ | Expand ruff rule set | Quality gates | Ruff families `E,F,I,UP,B` @100/py3.11 (currently `E9,F,I`); fix resulting findings repo-wide | — |
 | 41 ✎ | CI workflow | CI & pre-push | `.github/workflows`: ruff + pytest + safe service checks (no Docker → systemd/health checks). Mark uncovered gates as **known gaps** | 40 |
 | 42 ⏸ | Schemathesis API gate | Runtime/API gate | **PARKED 2026-09-02** → `product/stories/parking-lot/` (see [[stories-parkinglot]]). Schemathesis vs admin OpenAPI: read-only safe + disposable-DB write coverage | 40 |
-| 43 ✎ 🧱 | Provider-neutral contracts pkg | Contracts / dependency direction | `simplifyops_contracts/`: settings, logging context, runtime msg/response, tool context, identity/workspace values — **no** FastAPI/MCP/provider imports | — |
+| 43 ⏸ 🧱 | Provider-neutral contracts pkg | Contracts / dependency direction | **PARKED 2026-09-04** → `product/stories/parking-lot/` — premature (one control plane + gateway; boundaries already clean). Revisit with P2 runtime split. | — |
 | 44 ✅ ⚠️ | Config ownership + editor | Config ownership | Tracked per-env `hermes/config.base.<env>.yaml` + env-owned `config.yaml` + seed-if-missing; `admin_api/runtime_config.py` (redacted metadata, allowlisted apply, MCP editing) + shared restart endpoint + Settings editor; **superseded/absorbed [[story-34]]** (per-env editor, secrets presence-only). Dep 43 dropped | — |
 | 45 ✎ 🧱 | Settings page to spec | Settings | Existing **[[story-32]]** — rebuild all sections, remove UI-only shells, field-save lifecycle + audit; Provider/Model drives 44 | 44 |
-| 46 ✎ 🧱 | Soul/skills/knowledge + self-knowledge | Identity/soul/skills/knowledge | Restructure `souls/soul.md` → `soul/` + `knowledge/` + `governance/` policy dir; `scripts/build_agent_self_knowledge.py` (generate/check) + `knowledge/about-myself/sources.md`; authority-filtered | 43 |
+| 46 ⏸ 🧱 | Soul/skills/knowledge + self-knowledge | Identity | **PARKED 2026-09-04** → `product/stories/parking-lot/` — ahead of consumption (nothing loads knowledge/self-knowledge; soul done in [[story-60]]). Resume when runtime loads knowledge (P2 [[story-51]]). | — |
 | 47 ✎ | Migrations + schema_init | Persistence/schema | `migrations/` + `admin_api/schema_init.py` replacing schema-on-startup; forward-only, repair-safe, backup-on-apply | — |
 | 48 ⏸ 🧱 | Companies + company-access | People/companies model | **PARKED 2026-08-27** (see [[stories-parkinglot]]) — do the rest of P1 first, come back later. `companies`, `person_company_access`, `identity_claims` schema + shared service + admin UI; completes People spec (the deferred [[story-31]] follow-up) | 47 |
 | 49 ✅ | Boundary-contract docs | Boundary contracts | `plan-architecture/feature-details-if-needed/durable-message-workflow.md`, `plan-architecture/feature-details-if-needed/channel-message-tracking.md`, `docs/mcp/agent-mcp-master-doc.md` — document each boundary per the contract checklist (build-spec docs relocated to `plan-architecture/` 2026-08-27; MCP doc kept in `docs/mcp/` per law) | 36 |
