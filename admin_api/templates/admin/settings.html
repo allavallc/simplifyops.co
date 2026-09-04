@@ -402,12 +402,26 @@
   <div class="actions" style="margin-top:16px">
     {% if workspace.connected %}
       <a class="button secondary" href="/integrations/google/connect">Reconnect</a>
-      <button class="button danger" disabled title="Backend not yet implemented — requires confirmation">Disconnect</button>
-      <button class="button secondary" disabled title="Backend not yet implemented">Run calendar smoke test</button>
+      <button id="gw-disconnect" class="button danger">Disconnect</button>
+      <button class="button secondary" disabled title="Available once repo-owned connectors land (story 55)">Run calendar smoke test</button>
     {% else %}
       <a class="button primary" href="/integrations/google/connect">Connect Google Workspace</a>
     {% endif %}
   </div>
+  <div id="gw-status" style="margin-top:8px"></div>
+  {% if workspace.connected %}
+  <script>
+  document.getElementById('gw-disconnect').addEventListener('click', async () => {
+    if (!confirm('Disconnect Google Workspace? This revokes the shared grant (Calendar, Gmail, Drive, Sheets).')) return;
+    const status = document.getElementById('gw-status');
+    status.textContent = 'Disconnecting…';
+    const r = await fetch('/integrations/google/disconnect', {method: 'POST'});
+    const d = await r.json();
+    if (r.ok) { status.textContent = '✓ Disconnected.'; setTimeout(() => location.reload(), 600); }
+    else { status.textContent = '✗ Error: ' + (d.detail || JSON.stringify(d)); }
+  });
+  </script>
+  {% endif %}
 </section>
 
 <!-- ── Admin Contact ─────────────────────────────────────────────────── -->
