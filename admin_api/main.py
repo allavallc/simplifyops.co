@@ -13,6 +13,7 @@ from routes.admin_tools import router as admin_tools_router
 from routes.auth import router as auth_router
 from routes.health import router as health_router
 from routes.inbox import router as inbox_router
+from routes.integrations import router as integrations_router
 from routes.messages import router as messages_router
 from routes.pages import router as pages_router
 from routes.people import router as people_router
@@ -45,6 +46,7 @@ app.include_router(admin_people_router)
 app.include_router(admin_tools_router)
 app.include_router(admin_memories_router)
 app.include_router(inbox_router)
+app.include_router(integrations_router)
 app.include_router(activity_router)
 app.include_router(tool_contexts_router)
 app.include_router(settings_router)
