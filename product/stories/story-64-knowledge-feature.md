@@ -1,7 +1,7 @@
 # Story 64 - Knowledge feature (curated docs + self-knowledge + governed retrieval)
 
 ## Status
-**Phase A done (branch `story-64-knowledge-phase-a`); B + C pending.** 🧱 large / multi-phase. Implements
+**Phases A + B done; C (runtime consumption) pending.** 🧱 large / multi-phase. Implements
 `plan-architecture/feature-details-if-needed/agents-knowledge-rebuild.md` (the owner's spec), adapted
 to this repo. Supersedes parked [[story-46]] (this is 46 done *with* a real consumer).
 
@@ -87,3 +87,17 @@ for CI), one-way deps, server-side authz; secrets/traversal rejected; audited. �
 unit-tested (need live PG) — 9 pure-helper tests + live lifecycle verification (repo pattern). No 🔴.
 **Gate:** rebased on `origin/main`; full ruff clean; pytest 51 green (9 new); app imports (86 routes).
 **Phase A done.**
+
+## Review — Phase B (self-knowledge generator)
+Built: `scripts/build_agent_self_knowledge.py` (`generate`/`check`, stdlib only, deterministic, no LLM);
+`knowledge/about-myself/sources.md` (allowlist: one Output, sources with Reason + explicit Sections);
+`knowledge/about-myself/capabilities.md` (reviewed non-secret source); generated
+`knowledge/about-myself/generated/self-knowledge.md` (admin-level, tracked, do-not-hand-edit);
+`ops/agent-self-knowledge.md`; CI `check` step (drift-guards the committed output).
+Behavior: a named section extracts heading→next-equal/higher-heading (missing/empty **fails**, no
+whole-file fallback); source paths validated (no absolute/traversal; env/config/auth/session/audit/infra
+denylist); extracts + final output secret-scanned. Verified: generate→check OK, second generate byte-
+identical. brooks-review/audit: pure/deterministic, no god-module/coupling; secrets excluded at every
+step; generated file not auto-imported (separate from the DB store). 11 unit tests (parse, section
+extract/stop/missing/empty, denylist, secret-scan, determinism, committed-not-stale). No 🔴/🟡.
+**Gate:** rebased; full ruff clean; pytest 62 green (11 new). **Phase B done.**
