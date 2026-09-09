@@ -7,6 +7,7 @@ from db import init_pool
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from routes.activity import router as activity_router
+from routes.admin_knowledge import router as admin_knowledge_router
 from routes.admin_memories import router as admin_memories_router
 from routes.admin_people import router as admin_people_router
 from routes.admin_tools import router as admin_tools_router
@@ -52,5 +53,6 @@ app.include_router(tool_contexts_router)
 app.include_router(settings_router)
 app.include_router(runtime_router)
 app.include_router(pages_router)  # server-rendered admin pages (routes/pages.py)
+app.include_router(admin_knowledge_router)  # super-admin knowledge pages (story-64)
 
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")

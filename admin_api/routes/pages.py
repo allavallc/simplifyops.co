@@ -452,11 +452,7 @@ async def activity_detail_page(item_id: int, request: Request):
 # ---------------------------------------------------------------------------
 # UI-only pages (Story 13) — no backend logic yet
 # ---------------------------------------------------------------------------
-
-@router.get("/admin/knowledge")
-async def knowledge_page(request: Request):
-    if g := _guard(request): return g
-    return render(request, "admin/knowledge.html", {"user": _user(request), "documents": []})
+# /admin/knowledge is served by routes/admin_knowledge.py (story-64, super-admin only).
 
 
 @router.get("/admin/memories")
