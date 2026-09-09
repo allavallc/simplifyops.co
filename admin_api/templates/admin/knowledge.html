@@ -1,39 +1,113 @@
 {% extends "base.html" %}
 {% block title %}Knowledge{% endblock %}
 {% block content %}
+
 <section class="page-intro card">
-  <p class="eyebrow">Knowledge</p>
+  <p class="eyebrow">Admin</p>
   <div class="page-intro-row">
     <div>
       <h1>Knowledge</h1>
-      <p class="lede">Curated protocol and operational documents the agent can reference.</p>
+      <p class="lede">Curated, reviewed documents James can retrieve — read-only to the agent, authority-filtered. Super-admin only.</p>
     </div>
-    <div class="actions compact">
-      <button class="button primary" disabled title="Backend not yet implemented">Add document</button>
-    </div>
+    <div><a class="button primary" href="/admin/knowledge?new=true">New document</a></div>
   </div>
+</section>
+
+{% if error %}<section class="card"><p style="color:var(--danger,#b42318)">✗ {{ error }}</p></section>{% endif %}
+
+<section class="card">
+  <form method="get" action="/admin/knowledge" class="form-grid" style="grid-template-columns:repeat(4,minmax(0,1fr));align-items:end">
+    <label><span>Folder</span>
+      <select name="folder"><option value="">All</option>
+        {% for c in categories %}<option value="{{ c }}" {{ 'selected' if c==folder else '' }}>{{ c }}</option>{% endfor %}
+      </select></label>
+    <label><span>Status</span>
+      <select name="status"><option value="">All</option>
+        {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if s==status else '' }}>{{ s }}</option>{% endfor %}
+      </select></label>
+    <label><span>Visible to authority</span>
+      <select name="authority"><option value="">All</option>
+        {% for a in authorities %}<option value="{{ a }}" {{ 'selected' if a==authority else '' }}>{{ a }}</option>{% endfor %}
+      </select></label>
+    <button type="submit" class="button secondary">Filter</button>
+  </form>
 </section>
 
 <section class="card">
   <table class="data-table">
-    <thead><tr><th>ID</th><th>Title</th><th>Category</th><th>Source</th><th>Min authority</th><th>Updated</th><th></th></tr></thead>
+    <thead><tr><th>Title</th><th>Folder</th><th>Authority</th><th>Status</th><th>Updated</th></tr></thead>
     <tbody>
-      {% if documents %}
-        {% for d in documents %}
-        <tr>
-          <td class="mono">{{ d.id }}</td>
-          <td>{{ d.title }}</td>
-          <td>{{ d.category }}</td>
-          <td>{{ d.source_type }}</td>
-          <td>{{ d.min_authority }}</td>
-          <td>{{ d.updated_at }}</td>
-          <td><button class="button secondary tiny" disabled>View</button></td>
-        </tr>
-        {% endfor %}
+      {% for d in documents %}
+      <tr>
+        <td><a href="/admin/knowledge?id={{ d.id }}">{{ d.title }}</a>{% if d.read_only %} <span class="field-note">(generated, read-only)</span>{% endif %}</td>
+        <td class="mono">{{ d.category }}</td>
+        <td>{{ d.minimum_authority }}</td>
+        <td><span class="status-pill {{ 'allowed' if d.status=='active' else 'blocked' }}">{{ d.status }}</span></td>
+        <td class="field-note">{{ d.updated_at }} · {{ d.updated_by }}</td>
+      </tr>
       {% else %}
-        <tr><td colspan="7" class="empty-state">No knowledge documents yet. Backend not yet implemented.</td></tr>
-      {% endif %}
+      <tr><td colspan="5" class="field-note">No documents. Add one, or they seed from <code>knowledge/</code> on first load.</td></tr>
+      {% endfor %}
     </tbody>
   </table>
 </section>
+
+{% if new %}
+<!-- ── Create ─────────────────────────────────────────────────────────── -->
+<section class="card">
+  <h2>New document</h2>
+  <form method="post" action="/admin/knowledge">
+    <div class="form-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+      <label><span>Folder</span>
+        <select name="source_folder" required>
+          {% for c in categories %}<option value="{{ c }}" {{ 'selected' if c==form_values.source_folder else '' }}>{{ c }}</option>{% endfor %}
+        </select></label>
+      <label><span>Filename (.md)</span>
+        <input name="source_filename" placeholder="my-doc.md" value="{{ form_values.source_filename or '' }}" required /></label>
+      <label><span>Minimum authority</span>
+        <select name="minimum_authority" required>
+          {% for a in authorities %}<option value="{{ a }}" {{ 'selected' if a==form_values.minimum_authority else '' }}>{{ a }}</option>{% endfor %}
+        </select></label>
+    </div>
+    <label style="display:block;margin-top:12px"><span>Content (Markdown body — front matter is added automatically)</span>
+      <textarea name="content" rows="14" style="width:100%;font-family:monospace" required>{{ form_values.content or '' }}</textarea></label>
+    <div class="actions" style="margin-top:12px">
+      <button type="submit" class="button primary">Create</button>
+      <a class="button secondary" href="/admin/knowledge">Cancel</a>
+    </div>
+  </form>
+</section>
+{% elif selected %}
+<!-- ── View / edit ────────────────────────────────────────────────────── -->
+<section class="card">
+  <div class="page-intro-row">
+    <h2>{{ selected.title }}</h2>
+    <div>
+      <a class="button secondary" href="/admin/knowledge/{{ selected.id }}/download">Download</a>
+      {% if selected.status == 'active' %}
+        <form method="post" action="/admin/knowledge/{{ selected.id }}/archive" style="display:inline"><button class="button secondary">Archive</button></form>
+      {% else %}
+        <form method="post" action="/admin/knowledge/{{ selected.id }}/reactivate" style="display:inline"><button class="button secondary">Reactivate</button></form>
+      {% endif %}
+    </div>
+  </div>
+  <p class="field-note mono">{{ selected.slug }} · {{ selected.category }} · {{ selected.status }} · min authority {{ selected.minimum_authority }}</p>
+
+  {% if selected.read_only %}
+    <p class="field-note">This document is generated and read-only. Edit its sources and regenerate.</p>
+    <pre style="white-space:pre-wrap;background:var(--surface,#f6f6f6);padding:12px;border-radius:6px">{{ selected.content_md }}</pre>
+  {% else %}
+  <form method="post" action="/admin/knowledge/{{ selected.id }}">
+    <label><span>Minimum authority</span>
+      <select name="minimum_authority">
+        {% for a in authorities %}<option value="{{ a }}" {{ 'selected' if a==selected.minimum_authority else '' }}>{{ a }}</option>{% endfor %}
+      </select></label>
+    <label style="display:block;margin-top:12px"><span>Content (Markdown body)</span>
+      <textarea name="content" rows="16" style="width:100%;font-family:monospace" required>{{ selected.content_md }}</textarea></label>
+    <div class="actions" style="margin-top:12px"><button type="submit" class="button primary">Save</button></div>
+  </form>
+  {% endif %}
+</section>
+{% endif %}
+
 {% endblock %}
