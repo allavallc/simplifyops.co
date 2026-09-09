@@ -1,7 +1,7 @@
 # Story 64 - Knowledge feature (curated docs + self-knowledge + governed retrieval)
 
 ## Status
-**Plan — awaiting approval (no code yet).** 🧱 large / multi-phase. Implements
+**Phase A done (branch `story-64-knowledge-phase-a`); B + C pending.** 🧱 large / multi-phase. Implements
 `plan-architecture/feature-details-if-needed/agents-knowledge-rebuild.md` (the owner's spec), adapted
 to this repo. Supersedes parked [[story-46]] (this is 46 done *with* a real consumer).
 
@@ -72,5 +72,18 @@ super_admin visibility); retrieval (case-insensitive line search, no restricted 
 seeding (empty-store only; edits survive reads); generator determinism + drift; runtime authority split;
 audit (no body/token in general logs). Full gate per phase.
 
-## Review
-_(per phase, after approval + gate)_
+## Review — Phase A (curated store + super-admin lifecycle)
+Built: `knowledge/` tree (rich per-folder READMEs explaining each category + how it differs from
+neighbors; owner-approved seed); `knowledge_store.py` (single validation+storage seam — front-matter
+contract, path-traversal/secret rejection, authority ladder, slug/category/render helpers, store
+methods, `seed_from_repo_if_empty`, content versions); `migrations/0002_knowledge.sql`
+(`knowledge_documents` + `_versions`, uuid/checks/unique); `routes/admin_knowledge.py` (super-admin
+list/filter/create/edit/archive/reactivate/download, 303 redirects, generated read-only) + Jinja page;
+removed the `pages.py` stub route (no duplicate `/admin/knowledge`).
+**Verified live** (whitelist_app): migration applies idempotently; seed imports exactly the 1 example
+(READMEs/INDEX/sources skipped); full lifecycle create→edit(2 versions)→authority-filter→archive→
+download roundtrip; test rows cleaned up. brooks-review/audit: single seam, pure/DB split (lazy `db`
+for CI), one-way deps, server-side authz; secrets/traversal rejected; audited. 🟡 DB store-methods not
+unit-tested (need live PG) — 9 pure-helper tests + live lifecycle verification (repo pattern). No 🔴.
+**Gate:** rebased on `origin/main`; full ruff clean; pytest 51 green (9 new); app imports (86 routes).
+**Phase A done.**
