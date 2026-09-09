@@ -1,7 +1,7 @@
 # Story 64 - Knowledge feature (curated docs + self-knowledge + governed retrieval)
 
 ## Status
-**Phases A + B done; C (runtime consumption) pending.** 🧱 large / multi-phase. Implements
+**Phases A + B + C1 done; C2 (retrieval connector) pending.** 🧱 large / multi-phase. Implements
 `plan-architecture/feature-details-if-needed/agents-knowledge-rebuild.md` (the owner's spec), adapted
 to this repo. Supersedes parked [[story-46]] (this is 46 done *with* a real consumer).
 
@@ -101,3 +101,17 @@ identical. brooks-review/audit: pure/deterministic, no god-module/coupling; secr
 step; generated file not auto-imported (separate from the DB store). 11 unit tests (parse, section
 extract/stop/missing/empty, denylist, secret-scan, determinism, committed-not-stale). No 🔴/🟡.
 **Gate:** rebased; full ruff clean; pytest 62 green (11 new). **Phase B done.**
+
+## Review — Phase C1 (self-knowledge injection into the runtime handoff)
+Built: `gateway/self_knowledge.py` — `self_knowledge_context(authority)` reads the generated file and
+returns the **full body for admin/super_admin**, the **public Summary for others**, and **None**
+(omit) if the file is missing/unreadable/secret-like (never falls back to raw sources). Wired into
+`hermes_client.call_hermes` — appended to `system_message` after the tool-context token. Verified live
+(flat import): member → summary only; admin → full 2389-char body. brooks-review/audit: change confined
+to the runtime boundary (protected rule 10); authority filtered server-side; pure module, no
+coupling/god-module. 7 unit tests. No 🔴/🟡. **Gate:** rebased on `origin/main`; full ruff clean;
+pytest 69 green (7 new). **C1 done.** Deploy: restart `simplifyops-gateway.service`.
+
+**Remaining — C2 (governed retrieval connector):** `list/read/search_knowledge_docs` as the first
+repo-owned FastMCP connector in `connectors/`, resolving the tool-context token + authority-filtering
+server-side, registered in `config.yaml` `mcp_servers`. Planned separately (MCP + live-runtime).
