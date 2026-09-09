@@ -12,6 +12,7 @@ import time
 
 import requests
 from logging_setup import get_logger
+from self_knowledge import self_knowledge_context
 from sessions import (
     _logical_session_id,
     clear_hermes_session,
@@ -151,6 +152,12 @@ def call_hermes(prompt: str, user_id: str = None, channel: str = None,
         can_influence=can_influence,
     )
     system_message += f" Tool context token: {tool_ctx_token}."
+
+    # Authority-filtered self-knowledge (story-64 C1): admin+ get the full doc, others the public
+    # summary; omitted entirely if the generated file is missing/unreadable/secret-like.
+    sk = self_knowledge_context(authority)
+    if sk:
+        system_message += f"\n\nAbout yourself:\n{sk}"
 
     log.info("Agent handoff (session=%s): %.80s", session_id, prompt)
     t0 = time.time()
