@@ -1,7 +1,7 @@
 # Story 64 - Knowledge feature (curated docs + self-knowledge + governed retrieval)
 
 ## Status
-**Phases A + B + C1 done; C2 (retrieval connector) pending.** 🧱 large / multi-phase. Implements
+**Phases A + B + C1 + C2 done + deployed — story complete.** 🧱 large / multi-phase. Implements
 `plan-architecture/feature-details-if-needed/agents-knowledge-rebuild.md` (the owner's spec), adapted
 to this repo. Supersedes parked [[story-46]] (this is 46 done *with* a real consumer).
 
@@ -115,3 +115,93 @@ pytest 69 green (7 new). **C1 done.** Deploy: restart `simplifyops-gateway.servi
 **Remaining — C2 (governed retrieval connector):** `list/read/search_knowledge_docs` as the first
 repo-owned FastMCP connector in `connectors/`, resolving the tool-context token + authority-filtering
 server-side, registered in `config.yaml` `mcp_servers`. Planned separately (MCP + live-runtime).
+
+## Plan — Phase C2 (governed retrieval connector)
+
+**Decision (owner-approved): data path = direct DB via the shared service.** The connector imports
+`admin_api/knowledge_store.py` and resolves the token against Postgres itself (env-owned DB access) —
+matches the spec §6 boundary (`connector → shared service → DB`), no runtime→admin_api HTTP coupling.
+Everything runs as user `pi` on one host, so the connector holding DB access is not a new exposure.
+
+**Tools (spec §6, all read-only):**
+- `list_knowledge_docs(tool_context, category=None)` → `{status:"ok", documents:[summary]}`
+- `read_knowledge_doc(tool_context, slug)` → `{status:"ok", document: summary + content_md}`
+- `search_knowledge_docs(tool_context, query, category=None, max_results=20)` → `{status:"ok", query, matches}`
+
+**Governance — server-side, non-negotiable:**
+- `tool_context` (opaque token) is the ONLY authority source; model-supplied authority is ignored.
+- Resolve token → hash → `tool_contexts` row, check `expires_at > now()`; expired/unknown → error.
+- Filter `status='active'` AND `authority_meets(requester, minimum_authority)` **before** list/read/search.
+- Invisible or missing slug → the **same** not-found error (no existence/authority leak).
+- Search: case-insensitive substring over body lines of visible docs only; `max_results` clamped 1–50
+  (default 20); each match = `{slug, title, category, line (1-based), snippet}`; snippet is a shortened
+  line (no restricted content). No embeddings/vector/FTS.
+- Token never appears in logs, returns, or error strings. Preserve `request_id` in tool logs only.
+
+**Shared-service additions (`admin_api/knowledge_store.py`) — routes + tools share one impl (§4):**
+- `resolve_tool_context(token) -> dict | None` — hash + expiry check against `tool_contexts` (extracted
+  so the connector and the existing `/api/tool-contexts/{token}` route share exactly one implementation).
+- `get_visible_by_slug(slug, requester_authority) -> dict | None` — active + authority-filtered; None if
+  invisible/missing (caller maps both to the same not-found).
+- `search_visible(query, requester_authority, category=None, max_results=20) -> list[dict]` — substring
+  over `content_md` lines of active + authority-visible docs; returns the match shape above.
+- Reuse existing `_summary`, `authority_meets`, `list_docs(requester_authority=...)`, `AUTHORITIES`.
+
+**Connector (`connectors/knowledge/mcp_server.py`):** FastMCP server (`mcp.server.fastmcp`, SDK
+`>=1.9.0,<2.0.0`); launch pattern `connectors.knowledge.mcp_server`. Thin: parse/validate args →
+`resolve_tool_context` → call the shared service → shape `{status:"ok", ...}`. Package `connectors/`
++ `connectors/knowledge/` with `__init__.py`. No business logic beyond arg-shaping + error envelopes.
+
+**Runtime registration (`config.yaml` `mcp_servers`):** add a `knowledge` stdio server via
+`runtime_config.set_mcp_server(...)` — `command: python3`, `args: [-m, connectors.knowledge.mcp_server]`,
+`env: {PYTHONPATH: <repo>:<repo>/admin_api, GATEWAY_DB_DSN: <socket dsn>}`, `enabled: true`. Discovered
+by Hermes' native MCP client as `mcp_knowledge_*`. Restart `simplifyops-agent-runtime.service` to load.
+
+**Known limits (report, don't hide):** token TTL stays 30 min (existing `tool_context.py`), not the
+spec's 2 h default — a system-wide setting, out of scope to change here. No write/mutation tools. No
+timeout/retry/worker of its own (inherits runtime/DB budgets). Initial-seed race is a known gap.
+
+**Tests (real Postgres, per §10):** token resolve (valid/expired/unknown); authority matrix for
+list/read/search (contact→super_admin visibility); archived excluded; invisible slug == missing (same
+error, no leak); search case-insensitivity + `max_results` clamp + no restricted snippets; `status:"ok"`
+envelopes; token never in output. Connector tools tested against the real MCP SDK error envelope.
+
+**Gate:** code → logging → tests → commit WIP → rebase on `origin/main` → brooks-review + brooks-audit
+(fix until clean) → focused ruff+pytest → full ruff+pytest → push → merge → archive story.
+
+**Open sub-question (non-blocking, will default if you don't weigh in):** the `mcp_servers` entry is
+written to the env-owned live `config.yaml`, not committed. I'll add it via `set_mcp_server` at deploy
+and document it in the story; the connector code + a `config.base.prod.yaml` comment are what's committed.
+
+## Review — Phase C2 (governed retrieval connector)
+Built: `connectors/knowledge/mcp_server.py` — first repo-owned FastMCP server exposing
+`list_knowledge_docs` / `read_knowledge_doc` / `search_knowledge_docs`. Authority resolved server-side
+from the opaque `tool_context` token (model-claimed authority ignored); archived + over-authority docs
+filtered before list/read/search; missing == invisible slug (same not-found, no leak); token never
+logged/returned; `status:"ok"` envelopes; errors raised for the SDK to wrap. Reaches the shared service
++ Postgres directly (`connector → shared service → DB`). Shared code: `admin_api/tool_context_store.py`
+(single token resolver; the `/api/tool-contexts/{token}` route now delegates to it) and
+`knowledge_store.py` gains pure `search_matches`/`clamp_max_results`/`_snippet` + thin
+`get_visible_by_slug`/`search_visible` DB reads + one `_visible_authorities` window used by all three
+readers (removed the duplicated slice from `list_docs`). `mcp>=1.9.0,<2.0.0` pinned in requirements-dev.
+
+**Review:** brooks-review + brooks-audit run on the rebased branch. One 🟡 (authority-window slice
+duplicated across `list_docs` + `_visible_authorities`) — **fixed** by routing `list_docs` through the
+helper. One 🟢 accepted-by-design: the DB-layer authority SQL isn't unit-tested (no live-Postgres
+harness in the repo; matches Phase A convention) — covered by the live-deploy verification below. One
+🟢 recorded: shared services under `admin_api/` have outgrown the name; revisit (promote to `core/`)
+when a second connector lands. No 🔴. **Gate:** rebased on `origin/main`; full ruff clean; pytest 83
+green (14 new: pure search + monkeypatched connector governance).
+
+**Deploy (done 2026-09-15):** registered the `knowledge` MCP server in the live `config.yaml` via
+`runtime_config.set_mcp_server` (command `/usr/bin/python3`, args `[-m, connectors.knowledge.mcp_server]`,
+env `PYTHONPATH=/home/pi/projects/simplifyops` + `GATEWAY_DB_DSN`) and restarted
+`simplifyops-agent-runtime.service`. The runtime spawns the connector under its MCP stdio watchdog
+(stable, no restart-loop, no errors) and discovers all three tools.
+
+**Live verification (compensating control for the untested DB layer):** a throwaway script seeded temp
+docs (admin/active, member/active, member/archived) + member/admin tool-context tokens in real Postgres
+and asserted, then deleted everything — 14/14 PASS: token resolve (member/admin/bogus); member list
+excludes admin doc + hides archived; admin list includes admin doc; member CANNOT read admin doc (None);
+admin can; archived read == missing (None); truly-missing == None; search never leaks admin doc to a
+member and never returns archived. No in-context message was sent to James (off-limits). **C2 complete.**

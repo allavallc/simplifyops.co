@@ -6,3 +6,5 @@ pytest==9.1.1
 # App runtime deps exercised by tests.
 PyYAML==6.0.3
 requests==2.33.0
+# MCP SDK for the repo-owned knowledge connector (story-64 C2); spec pins the 1.x line.
+mcp>=1.9.0,<2.0.0
