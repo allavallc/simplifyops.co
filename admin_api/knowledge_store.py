@@ -136,6 +136,54 @@ def render_canonical(minimum_authority: str, status: str, content_md: str) -> st
     return f"---\nminimum_authority: {minimum_authority}\nstatus: {status}\n---\n\n{body}"
 
 
+# ── Retrieval search (pure; used by the governed MCP connector, story-64 C2) ─
+SEARCH_MAX_RESULTS = 50   # hard ceiling per spec §6
+SEARCH_DEFAULT_RESULTS = 20
+SNIPPET_MAX = 200         # shortened line snippet length
+
+
+def clamp_max_results(n) -> int:
+    """Clamp a requested result count into the supported 1–SEARCH_MAX_RESULTS window.
+    Non-integer/None falls back to the default."""
+    try:
+        n = int(n)
+    except (TypeError, ValueError):
+        return SEARCH_DEFAULT_RESULTS
+    return max(1, min(SEARCH_MAX_RESULTS, n))
+
+
+def _snippet(line: str) -> str:
+    s = line.strip()
+    return s if len(s) <= SNIPPET_MAX else s[: SNIPPET_MAX - 1].rstrip() + "…"
+
+
+def search_matches(docs: list[dict], query: str, max_results) -> list[dict]:
+    """Pure case-insensitive substring search over document body lines.
+
+    `docs` MUST already be the caller's active + authority-visible set (each with `slug`, `title`,
+    `category`, `content_md`) — this helper does no filtering of its own. Returns up to
+    `clamp_max_results(max_results)` matches, each `{slug, title, category, line (1-based), snippet}`.
+    An empty query matches nothing."""
+    q = (query or "").strip().lower()
+    limit = clamp_max_results(max_results)
+    if not q:
+        return []
+    out: list[dict] = []
+    for d in docs:
+        for i, line in enumerate((d.get("content_md") or "").splitlines(), start=1):
+            if q in line.lower():
+                out.append({
+                    "slug": d["slug"],
+                    "title": d["title"],
+                    "category": d["category"],
+                    "line": i,
+                    "snippet": _snippet(line),
+                })
+                if len(out) >= limit:
+                    return out
+    return out
+
+
 # ── Persistence (lazy db import) ────────────────────────────────────────────
 
 def _summary(row: dict) -> dict:
@@ -258,6 +306,15 @@ def get_detail(doc_id: str) -> dict | None:
     return d
 
 
+def _visible_authorities(requester_authority: str | None) -> list[str] | None:
+    """Authorities at/below the requester (the set whose docs they may see) — the single source of the
+    visibility window. Returns None for None/invalid input (no authority filter for listing; deny for
+    the by-slug/search readers, which treat None as not-visible)."""
+    if requester_authority not in AUTHORITIES:
+        return None
+    return AUTHORITIES[: AUTHORITIES.index(requester_authority) + 1]
+
+
 def list_docs(folder: str | None = None, status: str | None = None,
               requester_authority: str | None = None) -> list[dict]:
     """Admin listing. `requester_authority` (if set) filters to docs at/below that authority."""
@@ -268,14 +325,62 @@ def list_docs(folder: str | None = None, status: str | None = None,
         clauses.append("category = %s"); params.append(folder)
     if status:
         clauses.append("status = %s"); params.append(status)
-    if requester_authority in AUTHORITIES:
-        allowed = AUTHORITIES[: AUTHORITIES.index(requester_authority) + 1]
+    allowed = _visible_authorities(requester_authority)
+    if allowed is not None:
         clauses.append("minimum_authority = ANY(%s)"); params.append(allowed)
     where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
     with Db() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute(f"SELECT * FROM knowledge_documents {where} ORDER BY category, slug", params)
             return [_summary(r) for r in cur.fetchall()]
+
+
+def get_visible_by_slug(slug: str, requester_authority: str) -> dict | None:
+    """Active + authority-visible document (summary + `content_md`) by slug, or None if it is missing,
+    archived, or above the requester's authority. The caller maps None to a single not-found error so
+    invisible and nonexistent slugs are indistinguishable (spec §6)."""
+    import psycopg2.extras
+    from db import Db
+    allowed = _visible_authorities(requester_authority)
+    if allowed is None:
+        return None
+    with Db() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute("""
+                SELECT * FROM knowledge_documents
+                WHERE slug = %s AND status = 'active' AND minimum_authority = ANY(%s)
+            """, (slug, allowed))
+            row = cur.fetchone()
+    if not row:
+        return None
+    d = _summary(row)
+    d["content_md"] = row["content_md"]
+    return d
+
+
+def search_visible(query: str, requester_authority: str,
+                   category: str | None = None, max_results=SEARCH_DEFAULT_RESULTS) -> list[dict]:
+    """Authority-filtered active-doc substring search. Fetches the visible set (optionally one
+    category) then delegates matching to the pure `search_matches`."""
+    import psycopg2.extras
+    from db import Db
+    allowed = _visible_authorities(requester_authority)
+    if allowed is None:
+        return []
+    clauses = ["status = 'active'", "minimum_authority = ANY(%s)"]
+    params: list = [allowed]
+    if category:
+        clauses.append("category = %s")
+        params.append(category)
+    where = " AND ".join(clauses)
+    with Db() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(f"""
+                SELECT category, slug, title, content_md FROM knowledge_documents
+                WHERE {where} ORDER BY category, slug
+            """, params)
+            docs = [dict(r) for r in cur.fetchall()]
+    return search_matches(docs, query, max_results)
 
 
 def download_markdown(doc_id: str) -> tuple[str, str] | None:

@@ -65,6 +65,16 @@ tools:
 
 # MCP servers are env-owned (host-specific paths/OAuth). Add/remove/toggle them from the
 # Settings → runtime editor; they are written to the live config.yaml, never to this base.
+#
+# Repo-owned knowledge retrieval connector (story-64 C2) is registered in the LIVE config, e.g.:
+#   mcp_servers:
+#     knowledge:
+#       command: python3
+#       args: [-m, connectors.knowledge.mcp_server]
+#       enabled: true
+#       env:
+#         PYTHONPATH: /home/pi/projects/simplifyops        # so `connectors` is importable
+#         GATEWAY_DB_DSN: postgresql:///whitelist_app?host=/var/run/postgresql
 mcp_servers: {}
 
 plugins:
