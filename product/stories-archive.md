@@ -25,4 +25,5 @@ Completed / rejected / superseded / abandoned stories. The block below is genera
 | 61 | Story 61 - Settings: Admin Contact section (real) | Done. | `story-61-settings-admin-contact.md` |
 | 62 | Story 62 - Fix James's reply mojibake (UTF-8 decoded as Latin-1) | Done. | `story-62-fix-reply-encoding.md` |
 | 63 | Story 63 - Settings: honest Channels + Tools (remove UI-only shells) | Done. | `story-63-settings-channels-tools.md` |
+| 64 | Story 64 - Knowledge feature (curated docs + self-knowledge + governed retrieval) | Phases A + B + C1 + C2 done + deployed — stor… | `story-64-knowledge-feature.md` |
 <!-- END generated -->
